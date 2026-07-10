@@ -53,13 +53,15 @@ export default function App() {
 
   const [shuffledAway, setShuffledAway] = useState<string[]>([])
 
-  function addTask(title: string, importance: Importance): void {
+  function addTask(title: string, importance: Importance, dueDate?: string, dueTime?: string): void {
     const task: Task = {
       id: crypto.randomUUID(),
       title,
       importance,
       source: 'local',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      ...(dueDate ? { dueDate } : {}),
+      ...(dueTime ? { dueTime } : {})
     }
     update((d) => ({ ...d, tasks: [...d.tasks, task] }))
   }
@@ -72,7 +74,7 @@ export default function App() {
       tasks: d.tasks.map((t) => (t.id === id ? { ...t, completedAt: new Date().toISOString() } : t)),
       appState: d.appState.activeTaskId === id ? {} : d.appState
     }))
-    doneTimer.current = window.setTimeout(() => setJustDoneId(null), 500)
+    doneTimer.current = window.setTimeout(() => setJustDoneId(null), 850)
   }
 
   const pinnedTask = data?.tasks.find(
@@ -100,8 +102,9 @@ export default function App() {
     ) : null
   }
 
+  const suggestedUnpinnedId = pinnedTask ? null : (oneThing?.id ?? null)
   const openTasks = data.tasks.filter(
-    (t) => (!t.completedAt || t.id === justDoneId) && t.id !== oneThing?.id
+    (t) => (!t.completedAt || t.id === justDoneId) && t.id !== suggestedUnpinnedId
   )
   const wins = completedTodayCount(data.tasks, now)
 
@@ -125,7 +128,13 @@ export default function App() {
             />
           )}
           <div className="section-label">The rest — no rush</div>
-          <TaskList tasks={openTasks} justDoneId={justDoneId} onComplete={completeTask} />
+          <TaskList
+            tasks={openTasks}
+            justDoneId={justDoneId}
+            pinnedId={pinnedTask?.id ?? null}
+            now={now}
+            onComplete={completeTask}
+          />
           <AddTask onAdd={addTask} />
         </div>
         <TodayRail night={night} />

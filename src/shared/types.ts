@@ -9,6 +9,7 @@ export interface Task {
   gtasksId?: string
   gtasksListId?: string
   dueDate?: string // ISO date "YYYY-MM-DD"
+  dueTime?: string // "HH:MM" 24h, only meaningful with dueDate
   estimateMinutes?: number
   createdAt: string // ISO datetime
   completedAt?: string // ISO datetime

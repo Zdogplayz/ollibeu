@@ -17,7 +17,8 @@ export function isPickable(task: Task, now: Date): boolean {
 export function scoreTask(task: Task, now: Date): number {
   let score = IMPORTANCE_SCORE[task.importance]
   if (task.dueDate) {
-    const daysUntilDue = (new Date(task.dueDate + 'T23:59:59').getTime() - now.getTime()) / DAY_MS
+    const deadline = new Date(task.dueDate + 'T' + (task.dueTime ?? '23:59') + ':00')
+    const daysUntilDue = (deadline.getTime() - now.getTime()) / DAY_MS
     if (daysUntilDue <= 0) score += 80
     else if (daysUntilDue <= 1) score += 60
     else if (daysUntilDue <= 3) score += 30
