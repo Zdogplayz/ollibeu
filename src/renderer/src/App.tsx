@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Importance, OllibeuData, Task, TaskSortMode } from '@shared/types'
+import type { Importance, OllibeuData, Task, TaskSortMode, GoogleStatus } from '@shared/types'
 import { resolveTheme } from '@shared/theme'
 import { completedTodayCount } from '@shared/dayText'
 import { pickOneThing } from '@shared/pickOne'
@@ -17,6 +17,7 @@ export default function App() {
   const [now, setNow] = useState(() => new Date())
   const [loadTrouble, setLoadTrouble] = useState(false)
   const [saveTrouble, setSaveTrouble] = useState(false)
+  const [google, setGoogle] = useState<GoogleStatus>({ state: 'disconnected' })
 
   useEffect(() => {
     let cancelled = false
@@ -30,10 +31,13 @@ export default function App() {
       })
     const offData = window.ollibeu.onDataChanged((d) => setData(d))
     const offTrouble = window.ollibeu.onSaveTrouble(setSaveTrouble)
+    void window.ollibeu.google.status().then(setGoogle)
+    const offGoogle = window.ollibeu.onGoogleStatusChanged(setGoogle)
     return () => {
       cancelled = true
       offData()
       offTrouble()
+      offGoogle()
     }
   }, [])
 
@@ -155,7 +159,7 @@ export default function App() {
           />
           <AddTask onAdd={addTask} />
         </div>
-        <TodayRail night={night} />
+        <TodayRail night={night} google={google} onConnect={() => void window.ollibeu.google.connect().then(setGoogle)} />
       </main>
       {wins > 0 && (
         <div className="win-line">

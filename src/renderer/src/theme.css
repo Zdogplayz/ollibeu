@@ -192,6 +192,8 @@ body {
 
 .win-line { text-align: center; color: var(--text-faint); font-size: 13px; margin-top: 20px; }
 
+.today-rail .pill-button { margin: 6px 0 10px; }
+
 @media (max-width: 640px) {
   .layout { flex-direction: column; }
   .today-rail { width: 100%; }
