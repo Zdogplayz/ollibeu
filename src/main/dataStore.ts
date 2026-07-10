@@ -26,6 +26,10 @@ export class DataStore {
     return this.data
   }
 
+  troubleState(): boolean {
+    return this.inTrouble
+  }
+
   onChange(cb: ChangeListener): () => void {
     this.changeListeners.add(cb)
     return () => this.changeListeners.delete(cb)
@@ -44,8 +48,8 @@ export class DataStore {
     for (const cb of this.changeListeners) {
       try {
         cb(snapshot)
-      } catch {
-        // listener errors must never affect the store
+      } catch (err) {
+        console.error('[ollibeu] listener error', err)
       }
     }
   }
@@ -56,8 +60,8 @@ export class DataStore {
     for (const cb of this.troubleListeners) {
       try {
         cb(trouble)
-      } catch {
-        // listener errors must never affect the store
+      } catch (err) {
+        console.error('[ollibeu] listener error', err)
       }
     }
   }

@@ -31,6 +31,7 @@ export default function App() {
       })
     const offData = window.ollibeu.onDataChanged((d) => setData(d))
     const offTrouble = window.ollibeu.onSaveTrouble(setSaveTrouble)
+    void window.ollibeu.getSaveTrouble().then(setSaveTrouble).catch(() => {})
     void window.ollibeu.google.status().then(setGoogle)
     const offGoogle = window.ollibeu.onGoogleStatusChanged(setGoogle)
     return () => {
@@ -159,7 +160,11 @@ export default function App() {
           />
           <AddTask onAdd={addTask} />
         </div>
-        <TodayRail night={night} google={google} onConnect={() => void window.ollibeu.google.connect().then(setGoogle)} />
+        <TodayRail
+          night={night}
+          google={google}
+          onConnect={() => void window.ollibeu.google.connect().catch(() => {})}
+        />
       </main>
       {wins > 0 && (
         <div className="win-line">

@@ -110,4 +110,17 @@ describe('DataStore', () => {
     await store.mutate((d) => d)
     expect(states).toEqual([true, false])
   })
+
+  it('exposes current trouble state for late subscribers', async () => {
+    const store = await DataStore.open(path.join(dir, 'data.json'))
+    expect(store.troubleState()).toBe(false)
+    const anyStore = store as unknown as { save: (d: unknown) => Promise<void> }
+    const realSave = anyStore.save.bind(store)
+    anyStore.save = () => Promise.reject(new Error('disk full'))
+    await store.mutate((d) => d)
+    expect(store.troubleState()).toBe(true)
+    anyStore.save = realSave
+    await store.mutate((d) => d)
+    expect(store.troubleState()).toBe(false)
+  })
 })

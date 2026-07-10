@@ -37,6 +37,7 @@ export class GoogleAuth {
   private listeners = new Set<(s: GoogleStatus) => void>()
   private cancelPending: (() => void) | null = null
   private cancelRequested = false
+  private needsReconnect = false
 
   private constructor(tokenPath: string, config: GoogleClientConfig | null, tokens: StoredTokens | null) {
     this.tokenPath = tokenPath
@@ -67,14 +68,20 @@ export class GoogleAuth {
 
   private emit(): void {
     const s = this.status()
-    for (const cb of this.listeners) cb(s)
+    for (const cb of this.listeners) {
+      try {
+        cb(s)
+      } catch (err) {
+        console.error('[ollibeu] listener error', err)
+      }
+    }
   }
 
   status(): GoogleStatus {
     if (!this.config) return { state: 'unconfigured' }
     if (this.connecting) return { state: 'connecting' }
     if (this.tokens) return { state: 'connected', email: this.tokens.email }
-    return { state: 'disconnected' }
+    return { state: this.needsReconnect ? 'needs_reconnect' : 'disconnected' }
   }
 
   private async persistTokens(): Promise<void> {
@@ -133,6 +140,7 @@ export class GoogleAuth {
         email: t.id_token ? decodeEmailFromIdToken(t.id_token) : undefined
       }
       await this.persistTokens()
+      this.needsReconnect = false
       return this.status()
     } catch (err) {
       if ((err as Error).message === 'cancelled') return this.status()
@@ -226,15 +234,17 @@ export class GoogleAuth {
       const text = await res.text()
       if (res.status === 400 && text.includes('invalid_grant')) {
         this.tokens = null
+        this.needsReconnect = true
         await this.persistTokens()
         this.emit()
         throw new Error('needs_reconnect')
       }
       throw new Error(`token refresh: ${res.status}`)
     }
-    const t = (await res.json()) as { access_token: string; expires_in: number }
+    const t = (await res.json()) as { access_token: string; expires_in: number; refresh_token?: string }
     this.tokens = {
       ...this.tokens,
+      refreshToken: t.refresh_token ?? this.tokens.refreshToken,
       accessToken: t.access_token,
       expiresAt: Date.now() + t.expires_in * 1000
     }

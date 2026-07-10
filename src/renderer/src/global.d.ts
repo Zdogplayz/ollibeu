@@ -4,6 +4,7 @@ declare global {
   interface Window {
     ollibeu: {
       getData(): Promise<OllibeuData>
+      getSaveTrouble(): Promise<boolean>
       mutate: {
         addTask(task: Task): Promise<void>
         completeTask(id: string, completedAt: string): Promise<void>

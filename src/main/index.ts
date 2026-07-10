@@ -31,6 +31,16 @@ function broadcast(channel: string, payload: unknown): void {
 }
 
 app.whenReady().then(async () => {
+  const google = await GoogleAuth.create(app.getPath('userData'))
+  google.onStatusChange((s) => broadcast('google:status-changed', s))
+  ipcMain.handle('google:status', () => google.status())
+  ipcMain.handle('google:connect', () => google.connect())
+  ipcMain.handle('google:disconnect', () => google.disconnect())
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+
   let store: DataStore
   try {
     store = await DataStore.open(dataPath())
@@ -48,6 +58,7 @@ app.whenReady().then(async () => {
   store.onSaveTrouble((t) => broadcast('data:save-trouble', t))
 
   ipcMain.handle('data:get', () => store.get())
+  ipcMain.handle('data:trouble-state', () => store.troubleState())
   ipcMain.handle('task:add', (_e, task: Task) =>
     store.mutate((d) => ({ ...d, tasks: [...d.tasks, task] }))
   )
@@ -65,16 +76,7 @@ app.whenReady().then(async () => {
     store.mutate((d) => ({ ...d, appState: { ...d.appState, ...patch } }))
   )
 
-  const google = await GoogleAuth.create(app.getPath('userData'))
-  google.onStatusChange((s) => broadcast('google:status-changed', s))
-  ipcMain.handle('google:status', () => google.status())
-  ipcMain.handle('google:connect', () => google.connect())
-  ipcMain.handle('google:disconnect', () => google.disconnect())
-
   createWindow()
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
 })
 
 app.on('window-all-closed', () => {

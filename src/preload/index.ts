@@ -11,6 +11,7 @@ function subscribe<T>(channel: string) {
 
 contextBridge.exposeInMainWorld('ollibeu', {
   getData: (): Promise<OllibeuData> => ipcRenderer.invoke('data:get'),
+  getSaveTrouble: (): Promise<boolean> => ipcRenderer.invoke('data:trouble-state'),
   mutate: {
     addTask: (task: Task): Promise<void> => ipcRenderer.invoke('task:add', task),
     completeTask: (id: string, completedAt: string): Promise<void> =>
