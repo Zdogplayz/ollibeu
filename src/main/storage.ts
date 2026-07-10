@@ -11,9 +11,16 @@ export function emptyData(): OllibeuData {
 }
 
 export async function loadData(filePath: string): Promise<OllibeuData> {
+  let raw: string
+  try {
+    raw = await fs.readFile(filePath, 'utf8')
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return emptyData()
+    throw err
+  }
   let parsed: Partial<OllibeuData>
   try {
-    parsed = JSON.parse(await fs.readFile(filePath, 'utf8'))
+    parsed = JSON.parse(raw)
   } catch {
     return emptyData()
   }

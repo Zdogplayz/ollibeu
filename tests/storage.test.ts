@@ -56,4 +56,9 @@ describe('storage', () => {
     expect(JSON.parse(await readFile(file, 'utf8')).settings.theme).toBe('auto')
     await expect(readFile(file + '.tmp')).rejects.toThrow()
   })
+
+  it('propagates unexpected read errors instead of wiping to defaults', async () => {
+    // a directory at the data path is not ENOENT and not corrupt JSON — it must throw
+    await expect(loadData(dir)).rejects.toThrow()
+  })
 })
