@@ -102,10 +102,8 @@ export default function App() {
     ) : null
   }
 
-  const suggestedUnpinnedId = pinnedTask ? null : (oneThing?.id ?? null)
-  const openTasks = data.tasks.filter(
-    (t) => (!t.completedAt || t.id === justDoneId) && t.id !== suggestedUnpinnedId
-  )
+  // The one-thing card is a spotlight, not a removal — every open task stays in the list
+  const openTasks = data.tasks.filter((t) => !t.completedAt || t.id === justDoneId)
   const wins = completedTodayCount(data.tasks, now)
 
   return (

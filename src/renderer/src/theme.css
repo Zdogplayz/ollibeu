@@ -123,9 +123,9 @@ body {
 
 .empty-hint { color: var(--text-faint); font-size: 13px; margin-top: 8px; }
 
-.add-task { display: flex; gap: 8px; margin-top: 12px; }
+.add-task { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .add-task input[type='text'] {
-  flex: 1;
+  flex: 1 1 100%;
   border: 1px solid var(--card-border);
   background: var(--card-bg);
   color: var(--text);
@@ -173,16 +173,40 @@ body {
   padding: 2px 8px;
 }
 
-.add-task input[type='date'],
-.add-task input[type='time'] {
+.when-field {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border: 1px solid var(--card-border);
   background: var(--card-bg);
   color: var(--text);
   border-radius: 8px;
-  padding: 7px 8px;
-  font-size: 12px;
+  padding: 0 10px;
 }
-.add-task input[type='time']:disabled { opacity: 0.45; }
+.when-field .field-icon {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  color: var(--text-soft);
+}
+.when-field input {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  padding: 8px 0;
+  min-width: 110px;
+}
+.when-field input[type='time'] { min-width: 78px; }
+.when-field input::-webkit-calendar-picker-indicator { display: none; }
+.when-field input:focus { outline: none; }
+.when-field:focus-within {
+  border-color: var(--accent-soft);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.when-field:has(input:disabled) { opacity: 0.45; }
+.when-field { cursor: pointer; }
 
 .confetti {
   position: absolute;
