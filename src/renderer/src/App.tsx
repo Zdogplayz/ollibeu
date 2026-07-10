@@ -16,9 +16,25 @@ export default function App() {
   const [data, setData] = useState<OllibeuData | null>(null)
   const [now, setNow] = useState(() => new Date())
   const [loadTrouble, setLoadTrouble] = useState(false)
+  const [saveTrouble, setSaveTrouble] = useState(false)
 
   useEffect(() => {
-    window.ollibeu.loadData().then(setData).catch(() => setLoadTrouble(true))
+    let cancelled = false
+    window.ollibeu
+      .getData()
+      .then((d) => {
+        if (!cancelled) setData(d)
+      })
+      .catch(() => {
+        if (!cancelled) setLoadTrouble(true)
+      })
+    const offData = window.ollibeu.onDataChanged((d) => setData(d))
+    const offTrouble = window.ollibeu.onSaveTrouble(setSaveTrouble)
+    return () => {
+      cancelled = true
+      offData()
+      offTrouble()
+    }
   }, [])
 
   useEffect(() => {
@@ -30,24 +46,6 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = night ? 'night' : 'day'
   }, [night])
-
-  const hydrated = useRef(false)
-  const [saveTrouble, setSaveTrouble] = useState(false)
-  useEffect(() => {
-    if (!data) return
-    if (!hydrated.current) {
-      hydrated.current = true
-      return
-    }
-    window.ollibeu
-      .saveData(data)
-      .then(() => setSaveTrouble(false))
-      .catch(() => setSaveTrouble(true))
-  }, [data])
-
-  function update(fn: (d: OllibeuData) => OllibeuData): void {
-    setData((prev) => (prev ? fn(prev) : prev))
-  }
 
   const [justDoneId, setJustDoneId] = useState<string | null>(null)
   const doneTimer = useRef<number | undefined>(undefined)
@@ -64,17 +62,13 @@ export default function App() {
       ...(dueDate ? { dueDate } : {}),
       ...(dueTime ? { dueTime } : {})
     }
-    update((d) => ({ ...d, tasks: [...d.tasks, task] }))
+    void window.ollibeu.mutate.addTask(task)
   }
 
   function completeTask(id: string): void {
     window.clearTimeout(doneTimer.current)
     setJustDoneId(id)
-    update((d) => ({
-      ...d,
-      tasks: d.tasks.map((t) => (t.id === id ? { ...t, completedAt: new Date().toISOString() } : t)),
-      appState: d.appState.activeTaskId === id ? {} : d.appState
-    }))
+    void window.ollibeu.mutate.completeTask(id, new Date().toISOString())
     doneTimer.current = window.setTimeout(() => setJustDoneId(null), 850)
   }
 
@@ -84,14 +78,14 @@ export default function App() {
   const oneThing = data ? pinnedTask ?? pickOneThing(data.tasks, now, shuffledAway) : null
 
   function startOneThing(id: string): void {
-    update((d) => ({ ...d, appState: { ...d.appState, activeTaskId: id } }))
+    void window.ollibeu.mutate.setAppState({ activeTaskId: id })
   }
 
   function shuffleOneThing(id: string): void {
     const nextExcluded = [...shuffledAway, id]
     const nextPick = data ? pickOneThing(data.tasks, now, nextExcluded) : null
     setShuffledAway(nextPick ? nextExcluded : [])
-    if (pinnedTask?.id === id) update((d) => ({ ...d, appState: {} }))
+    if (pinnedTask?.id === id) void window.ollibeu.mutate.setAppState({ activeTaskId: undefined })
   }
 
   if (!data) {
@@ -111,7 +105,7 @@ export default function App() {
   const wins = completedTodayCount(data.tasks, now)
 
   function setTaskSort(mode: TaskSortMode): void {
-    update((d) => ({ ...d, settings: { ...d.settings, taskSort: mode } }))
+    void window.ollibeu.mutate.setSettings({ taskSort: mode })
   }
 
   return (
