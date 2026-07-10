@@ -1575,6 +1575,8 @@ git push
 
 ## Execution Amendments
 
+- **Task 7 (commit 001f183):** the plan's `completeTask` + `openTasks` filter made the pop-done celebration dead code — React 18 batches the two state updates, so the completed task left the list before the `done` class could render. As executed, `openTasks` keeps the just-done task mounted while `justDoneId` matches (500ms), a `doneTimer` ref makes rapid completions race-safe, and the check button got `type="button"`. **Task 8 note:** the `openTasks` line must preserve this: `filter((t) => (!t.completedAt || t.id === justDoneId) && t.id !== oneThing?.id)`.
+
 - **Task 6 (commit af5f3bb):** the plan's `update()` called `window.ollibeu.saveData` inside the `setData` updater — React updaters must be pure, and StrictMode double-invokes them in dev (double disk writes). As executed, persistence happens in a `useEffect` on `data` guarded by a `hydrated` ref (skips the initial-load echo write); the updater is pure. `update()`'s name and signature are unchanged, so Tasks 7–8 wire in exactly as written.
 - **Task 5 (commit 6a82fd1):** the plan's original `loadData` swallowed ALL read errors into `emptyData()`, which could let a transient IO error plus autosave silently wipe real user data — contradicting the spec's "never silently delete anything." As executed, only ENOENT and corrupt JSON fall back to defaults; other read errors propagate. A test covers this (loadData on a directory path rejects).
 

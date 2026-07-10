@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import type { Importance, OllibeuData, Task } from '@shared/types'
 import { resolveTheme } from '@shared/theme'
 import { completedTodayCount } from '@shared/dayText'
+import { pickOneThing } from '@shared/pickOne'
 import Greeting from './components/Greeting'
 import TaskList from './components/TaskList'
 import AddTask from './components/AddTask'
+import JustOneThing from './components/JustOneThing'
 import { quoteForDate } from './quotes'
 import './theme.css'
 
@@ -43,6 +45,8 @@ export default function App() {
   const [justDoneId, setJustDoneId] = useState<string | null>(null)
   const doneTimer = useRef<number | undefined>(undefined)
 
+  const [shuffledAway, setShuffledAway] = useState<string[]>([])
+
   function addTask(title: string, importance: Importance): void {
     const task: Task = {
       id: crypto.randomUUID(),
@@ -65,9 +69,25 @@ export default function App() {
     doneTimer.current = window.setTimeout(() => setJustDoneId(null), 500)
   }
 
+  const pinnedTask = data?.tasks.find(
+    (t) => t.id === data.appState.activeTaskId && !t.completedAt
+  )
+  const oneThing = data ? pinnedTask ?? pickOneThing(data.tasks, now, shuffledAway) : null
+
+  function startOneThing(id: string): void {
+    update((d) => ({ ...d, appState: { ...d.appState, activeTaskId: id } }))
+  }
+
+  function shuffleOneThing(id: string): void {
+    setShuffledAway((prev) => [...prev, id])
+    if (pinnedTask?.id === id) update((d) => ({ ...d, appState: {} }))
+  }
+
   if (!data) return null
 
-  const openTasks = data.tasks.filter((t) => !t.completedAt || t.id === justDoneId)
+  const openTasks = data.tasks.filter(
+    (t) => (!t.completedAt || t.id === justDoneId) && t.id !== oneThing?.id
+  )
   const wins = completedTodayCount(data.tasks, now)
 
   return (
@@ -80,6 +100,15 @@ export default function App() {
       />
       <main className="layout">
         <div className="focus-column">
+          {oneThing && (
+            <JustOneThing
+              task={oneThing}
+              pinned={pinnedTask?.id === oneThing.id}
+              onStart={() => startOneThing(oneThing.id)}
+              onShuffle={() => shuffleOneThing(oneThing.id)}
+              onComplete={() => completeTask(oneThing.id)}
+            />
+          )}
           <div className="section-label">The rest — no rush</div>
           <TaskList tasks={openTasks} justDoneId={justDoneId} onComplete={completeTask} />
           <AddTask onAdd={addTask} />
