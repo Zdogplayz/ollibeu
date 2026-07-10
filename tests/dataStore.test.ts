@@ -79,4 +79,35 @@ describe('DataStore', () => {
     const store = await DataStore.open(file)
     expect(store.get().tasks).toEqual([])
   })
+
+  it('a throwing onChange listener does not prevent the save or other listeners', async () => {
+    const file = path.join(dir, 'data.json')
+    const store = await DataStore.open(file)
+    const seen: number[] = []
+    store.onChange(() => {
+      throw new Error('bad listener')
+    })
+    store.onChange((d) => seen.push(d.tasks.length))
+    await store.mutate((d) => ({ ...d, tasks: [...d.tasks, aTask('a')] }))
+    expect(seen).toEqual([1])
+    expect(JSON.parse(await readFile(file, 'utf8')).tasks).toHaveLength(1)
+  })
+
+  it('a throwing onSaveTrouble listener cannot fake a save failure', async () => {
+    const file = path.join(dir, 'data.json')
+    const store = await DataStore.open(file)
+    const states: boolean[] = []
+    store.onSaveTrouble((t) => {
+      states.push(t)
+      if (t === false) throw new Error('bad listener')
+    })
+    const anyStore = store as unknown as { save: (d: unknown) => Promise<void> }
+    const realSave = anyStore.save.bind(store)
+    anyStore.save = () => Promise.reject(new Error('disk full'))
+    await store.mutate((d) => d)
+    anyStore.save = realSave
+    await store.mutate((d) => d)
+    await store.mutate((d) => d)
+    expect(states).toEqual([true, false])
+  })
 })

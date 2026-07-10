@@ -40,16 +40,32 @@ export class DataStore {
     return saveData(this.filePath, data)
   }
 
+  private notifyChange(snapshot: OllibeuData): void {
+    for (const cb of this.changeListeners) {
+      try {
+        cb(snapshot)
+      } catch {
+        // listener errors must never affect the store
+      }
+    }
+  }
+
   private setTrouble(trouble: boolean): void {
     if (this.inTrouble === trouble) return
     this.inTrouble = trouble
-    for (const cb of this.troubleListeners) cb(trouble)
+    for (const cb of this.troubleListeners) {
+      try {
+        cb(trouble)
+      } catch {
+        // listener errors must never affect the store
+      }
+    }
   }
 
   async mutate(fn: (d: OllibeuData) => OllibeuData): Promise<void> {
     this.data = fn(this.data)
     const snapshot = this.data
-    for (const cb of this.changeListeners) cb(snapshot)
+    this.notifyChange(snapshot)
     this.queue = this.queue.then(async () => {
       try {
         await this.save(snapshot)
