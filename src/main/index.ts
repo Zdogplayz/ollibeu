@@ -5,6 +5,8 @@ import { loadData, saveData } from './storage'
 
 const dataPath = (): string => path.join(app.getPath('userData'), 'ollibeu-data.json')
 
+let saveQueue: Promise<void> = Promise.resolve()
+
 function createWindow(): void {
   const win = new BrowserWindow({
     width: 1100,
@@ -23,7 +25,10 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   ipcMain.handle('data:load', () => loadData(dataPath()))
-  ipcMain.handle('data:save', (_event, data: OllibeuData) => saveData(dataPath(), data))
+  ipcMain.handle('data:save', (_event, data: OllibeuData) => {
+    saveQueue = saveQueue.catch(() => undefined).then(() => saveData(dataPath(), data))
+    return saveQueue
+  })
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

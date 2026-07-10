@@ -14,9 +14,10 @@ import './theme.css'
 export default function App() {
   const [data, setData] = useState<OllibeuData | null>(null)
   const [now, setNow] = useState(() => new Date())
+  const [loadTrouble, setLoadTrouble] = useState(false)
 
   useEffect(() => {
-    window.ollibeu.loadData().then(setData)
+    window.ollibeu.loadData().then(setData).catch(() => setLoadTrouble(true))
   }, [])
 
   useEffect(() => {
@@ -30,13 +31,17 @@ export default function App() {
   }, [night])
 
   const hydrated = useRef(false)
+  const [saveTrouble, setSaveTrouble] = useState(false)
   useEffect(() => {
     if (!data) return
     if (!hydrated.current) {
       hydrated.current = true
       return
     }
-    void window.ollibeu.saveData(data)
+    window.ollibeu
+      .saveData(data)
+      .then(() => setSaveTrouble(false))
+      .catch(() => setSaveTrouble(true))
   }, [data])
 
   function update(fn: (d: OllibeuData) => OllibeuData): void {
@@ -80,11 +85,20 @@ export default function App() {
   }
 
   function shuffleOneThing(id: string): void {
-    setShuffledAway((prev) => [...prev, id])
+    const nextExcluded = [...shuffledAway, id]
+    const nextPick = data ? pickOneThing(data.tasks, now, nextExcluded) : null
+    setShuffledAway(nextPick ? nextExcluded : [])
     if (pinnedTask?.id === id) update((d) => ({ ...d, appState: {} }))
   }
 
-  if (!data) return null
+  if (!data) {
+    return loadTrouble ? (
+      <p className="empty-hint" style={{ textAlign: 'center', marginTop: '40vh' }}>
+        Ollibeu couldn’t read its notes just now. Nothing has been changed — closing and
+        reopening usually clears it up. 🌿
+      </p>
+    ) : null
+  }
 
   const openTasks = data.tasks.filter(
     (t) => (!t.completedAt || t.id === justDoneId) && t.id !== oneThing?.id
@@ -119,6 +133,12 @@ export default function App() {
       {wins > 0 && (
         <div className="win-line">
           {wins} {wins === 1 ? 'thing' : 'things'} today ✨
+        </div>
+      )}
+      {saveTrouble && (
+        <div className="win-line">
+          Having a little trouble saving just now — your list is safe on screen, and I’ll try
+          again with your next change. 🍃
         </div>
       )}
     </>
