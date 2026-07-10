@@ -1,4 +1,5 @@
 import { safeStorage, shell } from 'electron'
+import { randomBytes } from 'crypto'
 import { promises as fs } from 'fs'
 import { createServer, type Server } from 'http'
 import path from 'path'
@@ -24,12 +25,18 @@ const LANDING_HTML = `<!doctype html><meta charset="utf-8"><title>Ollibeu</title
 <body style="font-family:system-ui;background:#f2f5ef;color:#33443a;display:flex;align-items:center;justify-content:center;height:100vh">
 <div style="text-align:center"><h2>All connected 🌿</h2><p>You can close this tab and head back to Ollibeu.</p></div>`
 
+const TROUBLE_HTML = `<!doctype html><meta charset="utf-8"><title>Ollibeu</title>
+<body style="font-family:system-ui;background:#f2f5ef;color:#33443a;display:flex;align-items:center;justify-content:center;height:100vh">
+<div style="text-align:center"><h2>That didn’t quite go through 🍃</h2><p>You can close this tab and try again from Ollibeu whenever you like.</p></div>`
+
 export class GoogleAuth {
   private config: GoogleClientConfig | null
   private tokens: StoredTokens | null
   private readonly tokenPath: string
   private connecting = false
   private listeners = new Set<(s: GoogleStatus) => void>()
+  private cancelPending: (() => void) | null = null
+  private cancelRequested = false
 
   private constructor(tokenPath: string, config: GoogleClientConfig | null, tokens: StoredTokens | null) {
     this.tokenPath = tokenPath
@@ -80,6 +87,7 @@ export class GoogleAuth {
       await fs.writeFile(this.tokenPath, safeStorage.encryptString(json))
     } else {
       console.warn('[ollibeu] OS keychain unavailable; storing Google tokens as plain JSON')
+      await fs.rm(this.tokenPath, { force: true })
       await fs.writeFile(this.tokenPath, json, { mode: 0o600 })
     }
   }
@@ -89,8 +97,9 @@ export class GoogleAuth {
     this.connecting = true
     this.emit()
     try {
+      this.cancelRequested = false
       const { verifier, challenge } = generatePkce()
-      const state = generatePkce().verifier.slice(0, 32)
+      const state = randomBytes(24).toString('base64url')
       const { code, redirectUri } = await this.awaitLoopbackCode(challenge, state)
       const body = new URLSearchParams({
         client_id: this.config.clientId,
@@ -105,7 +114,10 @@ export class GoogleAuth {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body
       })
-      if (!res.ok) throw new Error(`token exchange: ${res.status} ${await res.text()}`)
+      if (!res.ok) {
+        console.error('[ollibeu] token exchange failed', res.status, (await res.text()).slice(0, 200))
+        throw new Error(`token exchange failed: ${res.status}`)
+      }
       const t = (await res.json()) as {
         access_token: string
         refresh_token?: string
@@ -113,6 +125,7 @@ export class GoogleAuth {
         id_token?: string
       }
       if (!t.refresh_token) throw new Error('no refresh_token in response')
+      if (this.cancelRequested) throw new Error('cancelled')
       this.tokens = {
         refreshToken: t.refresh_token,
         accessToken: t.access_token,
@@ -121,6 +134,9 @@ export class GoogleAuth {
       }
       await this.persistTokens()
       return this.status()
+    } catch (err) {
+      if ((err as Error).message === 'cancelled') return this.status()
+      throw err
     } finally {
       this.connecting = false
       this.emit()
@@ -132,39 +148,51 @@ export class GoogleAuth {
     state: string
   ): Promise<{ code: string; redirectUri: string }> {
     return new Promise((resolve, reject) => {
+      const settle = (fn: () => void): void => {
+        this.cancelPending = null
+        fn()
+      }
       const server: Server = createServer((req, res) => {
         const url = new URL(req.url ?? '/', 'http://127.0.0.1')
         if (url.pathname !== '/callback') {
           res.writeHead(404).end()
           return
         }
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }).end(LANDING_HTML)
         const err = url.searchParams.get('error')
         const code = url.searchParams.get('code')
         const gotState = url.searchParams.get('state')
+        const ok = !err && !!code && gotState === state
+        res
+          .writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
+          .end(ok ? LANDING_HTML : TROUBLE_HTML)
         server.close()
         clearTimeout(timer)
-        if (err || !code) reject(new Error(err ?? 'no code'))
-        else if (gotState !== state) reject(new Error('state mismatch'))
-        else resolve({ code, redirectUri })
+        if (err || !code) settle(() => reject(new Error(err ?? 'no code')))
+        else if (gotState !== state) settle(() => reject(new Error('state mismatch')))
+        else settle(() => resolve({ code, redirectUri }))
       })
       let redirectUri = ''
       const timer = setTimeout(
         () => {
           server.close()
-          reject(new Error('sign-in timed out'))
+          settle(() => reject(new Error('sign-in timed out')))
         },
         5 * 60 * 1000
       )
       server.listen(0, '127.0.0.1', () => {
         const address = server.address()
         if (!address || typeof address === 'string') {
-          reject(new Error('could not bind loopback'))
+          settle(() => reject(new Error('could not bind loopback')))
           return
         }
         redirectUri = `http://127.0.0.1:${address.port}/callback`
+        this.cancelPending = () => {
+          clearTimeout(timer)
+          server.close()
+          settle(() => reject(new Error('cancelled')))
+        }
         if (!this.config) {
-          reject(new Error('unconfigured'))
+          settle(() => reject(new Error('unconfigured')))
           return
         }
         void shell.openExternal(
@@ -215,6 +243,9 @@ export class GoogleAuth {
   }
 
   async disconnect(): Promise<GoogleStatus> {
+    this.cancelRequested = true
+    this.cancelPending?.()
+    this.cancelPending = null
     if (this.tokens) {
       void fetch(
         `https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(this.tokens.refreshToken)}`,
