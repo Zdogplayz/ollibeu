@@ -4,3 +4,5 @@ out/
 .superpowers/
 *.log
 .env
+*.tsbuildinfo
+.claude/
