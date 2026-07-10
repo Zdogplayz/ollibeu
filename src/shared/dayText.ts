@@ -20,6 +20,7 @@ export function completedTodayCount(tasks: Task[], now: Date): number {
 
 export function dueLabel(dueDate: string, dueTime: string | undefined, now: Date): string {
   const due = new Date(dueDate + 'T00:00:00')
+  if (Number.isNaN(due.getTime())) return ''
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const diffDays = Math.round((due.getTime() - today.getTime()) / 86_400_000)
   let day: string
@@ -29,5 +30,6 @@ export function dueLabel(dueDate: string, dueTime: string | undefined, now: Date
   if (!dueTime) return day
   const [h, m] = dueTime.split(':').map(Number)
   const at = new Date(2000, 0, 1, h, m)
+  if (Number.isNaN(at.getTime())) return day
   return `${day} · ${at.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`
 }

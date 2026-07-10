@@ -58,4 +58,10 @@ describe('dueLabel', () => {
     expect(label).toMatch(/Jul/)
     expect(label.toLowerCase()).not.toMatch(/overdue|late|behind|failed/)
   })
+  it('returns empty for a malformed date instead of garbage', () => {
+    expect(dueLabel('not-a-date', undefined, now)).toBe('')
+  })
+  it('drops a malformed time but keeps the day', () => {
+    expect(dueLabel('2026-07-10', 'bogus', now)).toBe('today')
+  })
 })

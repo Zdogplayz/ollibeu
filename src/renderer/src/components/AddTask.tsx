@@ -42,7 +42,10 @@ export default function AddTask(props: {
         aria-label="When (optional)"
         title="when? (optional)"
         value={dueDate}
-        onChange={(e) => setDueDate(e.target.value)}
+        onChange={(e) => {
+          setDueDate(e.target.value)
+          if (!e.target.value) setDueTime('')
+        }}
       />
       <input
         type="time"

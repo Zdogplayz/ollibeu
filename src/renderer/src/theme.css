@@ -102,7 +102,7 @@ body {
 .task-card.importance-high { border-left-color: var(--edge-high); }
 .task-card.importance-medium { border-left-color: var(--edge-medium); }
 .task-card.importance-low { border-left-color: var(--edge-low); }
-.task-card.done { animation: pop-done 0.45s ease; opacity: 0.55; }
+.task-card.done { animation: pop-done 0.45s ease; opacity: 0.55; z-index: 1; }
 
 @keyframes pop-done {
   0% { transform: scale(1); }
@@ -151,7 +151,7 @@ body {
   .today-rail { width: 100%; }
 }
 
-.task-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.task-title { flex: 1; min-width: 0; }
 
 .due-chip {
   flex: none;
