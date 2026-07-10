@@ -149,3 +149,36 @@ body {
   .layout { flex-direction: column; }
   .today-rail { width: 100%; }
 }
+
+.task-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+.due-chip {
+  flex: none;
+  font-size: 11px;
+  color: var(--text-faint);
+  background: var(--rail-bg);
+  border: 1px solid var(--rail-border);
+  border-radius: 10px;
+  padding: 2px 8px;
+}
+
+.pinned-badge {
+  flex: none;
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  color: var(--accent-soft);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-radius: 10px;
+  padding: 2px 8px;
+}
+
+.add-task input[type='date'],
+.add-task input[type='time'] {
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 7px 8px;
+  font-size: 12px;
+}
+.add-task input[type='time']:disabled { opacity: 0.45; }
