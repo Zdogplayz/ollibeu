@@ -86,7 +86,53 @@ body {
 }
 .pill-button.quiet { background: transparent; color: var(--text-soft); }
 
-.task-list { list-style: none; padding: 0; margin: 8px 0 0; }
+.list-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sort-toggle {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--rail-bg);
+  border: 1px solid var(--rail-border);
+  border-radius: 12px;
+  padding: 2px;
+}
+.sort-toggle button {
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.sort-toggle button.active {
+  background: var(--card-bg);
+  color: var(--accent-soft);
+  box-shadow: var(--card-shadow);
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  max-height: 322px; /* roughly seven task rows */
+  overflow-y: auto;
+}
+/* fade the tail only when the list actually scrolls (class set from a measured overflow check) */
+.task-list.fading {
+  mask-image: linear-gradient(to bottom, black calc(100% - 52px), transparent 100%);
+}
+.task-list::-webkit-scrollbar { width: 8px; }
+.task-list::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 4px;
+}
+.task-list::-webkit-scrollbar-track { background: transparent; }
 .task-card {
   position: relative;
   display: flex;

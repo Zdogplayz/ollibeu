@@ -1,5 +1,6 @@
 export type Importance = 'high' | 'medium' | 'low'
 export type TaskSource = 'local' | 'gtasks'
+export type TaskSortMode = 'importance' | 'soonest'
 
 export interface Task {
   id: string
@@ -31,6 +32,7 @@ export interface Settings {
   quotesEnabled: boolean
   leaveByBufferMinutes: number
   launchAtLogin: boolean
+  taskSort: TaskSortMode
 }
 
 export interface AppState {
@@ -52,5 +54,6 @@ export const DEFAULT_SETTINGS: Settings = {
   gamificationEnabled: false,
   quotesEnabled: true,
   leaveByBufferMinutes: 25,
-  launchAtLogin: true
+  launchAtLogin: true,
+  taskSort: 'importance'
 }
