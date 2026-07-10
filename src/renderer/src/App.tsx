@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Importance, OllibeuData, Task } from '@shared/types'
+import type { Importance, OllibeuData, Task, TaskSortMode } from '@shared/types'
 import { resolveTheme } from '@shared/theme'
 import { completedTodayCount } from '@shared/dayText'
 import { pickOneThing } from '@shared/pickOne'
+import { sortTasks } from '@shared/taskSort'
 import Greeting from './components/Greeting'
 import TaskList from './components/TaskList'
 import AddTask from './components/AddTask'
@@ -103,8 +104,15 @@ export default function App() {
   }
 
   // The one-thing card is a spotlight, not a removal — every open task stays in the list
-  const openTasks = data.tasks.filter((t) => !t.completedAt || t.id === justDoneId)
+  const openTasks = sortTasks(
+    data.tasks.filter((t) => !t.completedAt || t.id === justDoneId),
+    data.settings.taskSort
+  )
   const wins = completedTodayCount(data.tasks, now)
+
+  function setTaskSort(mode: TaskSortMode): void {
+    update((d) => ({ ...d, settings: { ...d.settings, taskSort: mode } }))
+  }
 
   return (
     <>
@@ -125,7 +133,25 @@ export default function App() {
               onComplete={() => completeTask(oneThing.id)}
             />
           )}
-          <div className="section-label">The rest — no rush</div>
+          <div className="list-header">
+            <div className="section-label">The rest — no rush</div>
+            <div className="sort-toggle" role="group" aria-label="Sort tasks by">
+              <button
+                type="button"
+                className={data.settings.taskSort === 'importance' ? 'active' : ''}
+                onClick={() => setTaskSort('importance')}
+              >
+                importance
+              </button>
+              <button
+                type="button"
+                className={data.settings.taskSort === 'soonest' ? 'active' : ''}
+                onClick={() => setTaskSort('soonest')}
+              >
+                soonest
+              </button>
+            </div>
+          </div>
           <TaskList
             tasks={openTasks}
             justDoneId={justDoneId}
