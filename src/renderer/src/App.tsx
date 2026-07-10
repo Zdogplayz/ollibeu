@@ -74,7 +74,7 @@ export default function App() {
       tasks: d.tasks.map((t) => (t.id === id ? { ...t, completedAt: new Date().toISOString() } : t)),
       appState: d.appState.activeTaskId === id ? {} : d.appState
     }))
-    doneTimer.current = window.setTimeout(() => setJustDoneId(null), 500)
+    doneTimer.current = window.setTimeout(() => setJustDoneId(null), 850)
   }
 
   const pinnedTask = data?.tasks.find(
