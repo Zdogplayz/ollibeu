@@ -16,6 +16,7 @@ export default function TaskList(props: {
           className={`task-card importance-${t.importance}${t.id === props.justDoneId ? ' done' : ''}`}
         >
           <button
+            type="button"
             className="check"
             aria-label={`Mark "${t.title}" done`}
             onClick={() => props.onComplete(t.id)}

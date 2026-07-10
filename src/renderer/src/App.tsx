@@ -41,6 +41,7 @@ export default function App() {
   }
 
   const [justDoneId, setJustDoneId] = useState<string | null>(null)
+  const doneTimer = useRef<number | undefined>(undefined)
 
   function addTask(title: string, importance: Importance): void {
     const task: Task = {
@@ -54,18 +55,19 @@ export default function App() {
   }
 
   function completeTask(id: string): void {
+    window.clearTimeout(doneTimer.current)
     setJustDoneId(id)
     update((d) => ({
       ...d,
       tasks: d.tasks.map((t) => (t.id === id ? { ...t, completedAt: new Date().toISOString() } : t)),
       appState: d.appState.activeTaskId === id ? {} : d.appState
     }))
-    setTimeout(() => setJustDoneId(null), 500)
+    doneTimer.current = window.setTimeout(() => setJustDoneId(null), 500)
   }
 
   if (!data) return null
 
-  const openTasks = data.tasks.filter((t) => !t.completedAt)
+  const openTasks = data.tasks.filter((t) => !t.completedAt || t.id === justDoneId)
   const wins = completedTodayCount(data.tasks, now)
 
   return (
