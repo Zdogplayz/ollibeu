@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { AppState, OllibeuData, Settings, Task } from '../shared/types'
+import type { AppState, GoogleStatus, OllibeuData, Settings, Task } from '../shared/types'
 
 function subscribe<T>(channel: string) {
   return (cb: (payload: T) => void): (() => void) => {
@@ -21,5 +21,11 @@ contextBridge.exposeInMainWorld('ollibeu', {
       ipcRenderer.invoke('appstate:set', patch)
   },
   onDataChanged: subscribe<OllibeuData>('data:changed'),
-  onSaveTrouble: subscribe<boolean>('data:save-trouble')
+  onSaveTrouble: subscribe<boolean>('data:save-trouble'),
+  google: {
+    status: (): Promise<GoogleStatus> => ipcRenderer.invoke('google:status'),
+    connect: (): Promise<GoogleStatus> => ipcRenderer.invoke('google:connect'),
+    disconnect: (): Promise<GoogleStatus> => ipcRenderer.invoke('google:disconnect')
+  },
+  onGoogleStatusChanged: subscribe<GoogleStatus>('google:status-changed')
 })

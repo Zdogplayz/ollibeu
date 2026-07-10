@@ -45,6 +45,11 @@ export interface OllibeuData {
   appState: AppState
 }
 
+export interface GoogleStatus {
+  state: 'unconfigured' | 'disconnected' | 'connecting' | 'connected' | 'needs_reconnect'
+  email?: string
+}
+
 export const DEFAULT_SETTINGS: Settings = {
   displayName: '',
   theme: 'auto',

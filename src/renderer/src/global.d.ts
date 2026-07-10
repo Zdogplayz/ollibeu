@@ -1,4 +1,4 @@
-import type { AppState, OllibeuData, Settings, Task } from '@shared/types'
+import type { AppState, GoogleStatus, OllibeuData, Settings, Task } from '@shared/types'
 
 declare global {
   interface Window {
@@ -12,6 +12,12 @@ declare global {
       }
       onDataChanged(cb: (d: OllibeuData) => void): () => void
       onSaveTrouble(cb: (t: boolean) => void): () => void
+      google: {
+        status(): Promise<GoogleStatus>
+        connect(): Promise<GoogleStatus>
+        disconnect(): Promise<GoogleStatus>
+      }
+      onGoogleStatusChanged(cb: (s: GoogleStatus) => void): () => void
     }
   }
 }

@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
 import type { AppState, Settings, Task } from '../shared/types'
 import { DataStore } from './dataStore'
+import { GoogleAuth } from './google/auth'
 
 const dataPath = (): string => path.join(app.getPath('userData'), 'ollibeu-data.json')
 
@@ -63,6 +64,12 @@ app.whenReady().then(async () => {
   ipcMain.handle('appstate:set', (_e, patch: Partial<AppState>) =>
     store.mutate((d) => ({ ...d, appState: { ...d.appState, ...patch } }))
   )
+
+  const google = await GoogleAuth.create(app.getPath('userData'))
+  google.onStatusChange((s) => broadcast('google:status-changed', s))
+  ipcMain.handle('google:status', () => google.status())
+  ipcMain.handle('google:connect', () => google.connect())
+  ipcMain.handle('google:disconnect', () => google.disconnect())
 
   createWindow()
   app.on('activate', () => {
