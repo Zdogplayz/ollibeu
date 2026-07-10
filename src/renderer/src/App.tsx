@@ -7,6 +7,7 @@ import Greeting from './components/Greeting'
 import TaskList from './components/TaskList'
 import AddTask from './components/AddTask'
 import JustOneThing from './components/JustOneThing'
+import TodayRail from './components/TodayRail'
 import { quoteForDate } from './quotes'
 import './theme.css'
 
@@ -113,7 +114,7 @@ export default function App() {
           <TaskList tasks={openTasks} justDoneId={justDoneId} onComplete={completeTask} />
           <AddTask onAdd={addTask} />
         </div>
-        {/* TodayRail lands in Task 9 */}
+        <TodayRail night={night} />
       </main>
       {wins > 0 && (
         <div className="win-line">
