@@ -1573,6 +1573,11 @@ git push
 
 ---
 
+## Execution Amendments
+
+- **Task 6 (commit af5f3bb):** the plan's `update()` called `window.ollibeu.saveData` inside the `setData` updater — React updaters must be pure, and StrictMode double-invokes them in dev (double disk writes). As executed, persistence happens in a `useEffect` on `data` guarded by a `hydrated` ref (skips the initial-load echo write); the updater is pure. `update()`'s name and signature are unchanged, so Tasks 7–8 wire in exactly as written.
+- **Task 5 (commit 6a82fd1):** the plan's original `loadData` swallowed ALL read errors into `emptyData()`, which could let a transient IO error plus autosave silently wipe real user data — contradicting the spec's "never silently delete anything." As executed, only ENOENT and corrupt JSON fall back to defaults; other read errors propagate. A test covers this (loadData on a directory path rejects).
+
 ## Self-Review Notes
 
 - **Spec coverage (Phase 1 scope):** layout Option C ✓ (Tasks 6–9), themes + 6:30 auto-switch ✓ (Tasks 2, 6), importance edges ✓ (Tasks 6–7), just-one-thing with pin/shuffle ✓ (Tasks 3, 8), no-guilt copy ✓ (Global Constraints + component strings), win count ✓ (Tasks 4, 7), quotes ✓ (Task 4), local-first atomic storage + forward migration ✓ (Task 5), MIT ✓ (Task 9). Deferred by design: Google sync, leave-by, idle ding, onboarding, launch-at-login, gamification toggle UI, sounds, installers — Phases 2–3.
