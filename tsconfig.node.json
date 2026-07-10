@@ -9,6 +9,5 @@
     "composite": true,
     "types": ["node"]
   },
-  "include": ["src/main/**/*", "src/preload/**/*", "src/shared/**/*", "src/renderer/src/**/*", "tests/**/*", "electron.vite.config.ts", "vitest.config.ts"],
-  "exclude": ["src/renderer/src/**/*.tsx", "src/renderer/src/**/*.jsx"]
+  "include": ["src/main/**/*", "src/preload/**/*", "src/shared/**/*", "src/renderer/src/quotes.ts", "tests/**/*", "electron.vite.config.ts", "vitest.config.ts"]
 }
