@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { OllibeuData } from '@shared/types'
 import { resolveTheme } from '@shared/theme'
 import Greeting from './components/Greeting'
@@ -23,13 +23,18 @@ export default function App() {
     document.documentElement.dataset.theme = night ? 'night' : 'day'
   }, [night])
 
+  const hydrated = useRef(false)
+  useEffect(() => {
+    if (!data) return
+    if (!hydrated.current) {
+      hydrated.current = true
+      return
+    }
+    void window.ollibeu.saveData(data)
+  }, [data])
+
   function update(fn: (d: OllibeuData) => OllibeuData): void {
-    setData((prev) => {
-      if (!prev) return prev
-      const next = fn(prev)
-      void window.ollibeu.saveData(next)
-      return next
-    })
+    setData((prev) => (prev ? fn(prev) : prev))
   }
   void update // used from Task 7 onward
 
