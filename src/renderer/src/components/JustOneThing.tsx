@@ -11,7 +11,7 @@ export default function JustOneThing(props: {
     <section className="card one-thing">
       <div className="section-label">Just one thing</div>
       <div className="title">{props.task.title}</div>
-      {props.task.estimateMinutes && (
+      {!!props.task.estimateMinutes && (
         <div className="estimate">~{props.task.estimateMinutes} minutes, and it’s off your mind</div>
       )}
       <div className="actions">
