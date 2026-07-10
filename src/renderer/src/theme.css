@@ -1,0 +1,151 @@
+:root {
+  --edge-high: #dc9a8e;
+  --edge-medium: #d7bd7e;
+  --edge-low: #8fbf9e;
+  --radius-card: 12px;
+  font-family: 'Segoe UI', 'SF Pro Text', system-ui, sans-serif;
+}
+
+:root[data-theme='day'] {
+  --bg-a: #f2f5ef;
+  --bg-b: #e6ede3;
+  --text: #33443a;
+  --text-soft: #7d9488;
+  --text-faint: #93a89a;
+  --accent: #5d8a6e;
+  --accent-soft: #6e9a7f;
+  --card-bg: #ffffff;
+  --card-border: #d8e3d6;
+  --card-shadow: 0 2px 8px rgba(120, 150, 130, 0.12);
+  --rail-bg: rgba(255, 255, 255, 0.5);
+  --rail-border: #dde7da;
+}
+
+:root[data-theme='night'] {
+  --bg-a: #16211c;
+  --bg-b: #22332a;
+  --text: #e5efe8;
+  --text-soft: #8fac9c;
+  --text-faint: #7d9a8a;
+  --accent: #8fc4a4;
+  --accent-soft: #9ecbb0;
+  --card-bg: rgba(150, 200, 170, 0.09);
+  --card-border: rgba(160, 210, 180, 0.18);
+  --card-shadow: none;
+  --rail-bg: rgba(150, 200, 170, 0.06);
+  --rail-border: rgba(160, 210, 180, 0.15);
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+body {
+  background: linear-gradient(160deg, var(--bg-a) 0%, var(--bg-b) 100%);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background 0.6s ease, color 0.6s ease;
+}
+
+#root { max-width: 760px; margin: 0 auto; padding: 40px 28px; }
+
+.greeting { text-align: center; margin-bottom: 24px; }
+.greeting .date-line { color: var(--text-faint); font-size: 13px; }
+.greeting h1 { font-size: 26px; font-weight: 600; margin: 4px 0; }
+.greeting .quote { color: var(--text-faint); font-style: italic; font-size: 14px; }
+
+.layout { display: flex; gap: 24px; align-items: flex-start; }
+.focus-column { flex: 1.6; min-width: 0; }
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--card-shadow);
+}
+
+.one-thing { padding: 18px; text-align: center; margin-bottom: 18px; }
+.one-thing .section-label { margin-bottom: 4px; }
+.one-thing .title { font-size: 17px; font-weight: 600; }
+.one-thing .estimate { color: var(--text-faint); font-size: 12px; margin-top: 3px; }
+.one-thing .actions { margin-top: 12px; display: flex; gap: 10px; justify-content: center; }
+
+.section-label {
+  color: var(--text-soft);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pill-button {
+  border: none;
+  border-radius: 20px;
+  padding: 7px 18px;
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--accent);
+  color: var(--bg-a);
+}
+.pill-button.quiet { background: transparent; color: var(--text-soft); }
+
+.task-list { list-style: none; padding: 0; margin: 8px 0 0; }
+.task-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  margin-bottom: 7px;
+  border-left-width: 3px;
+  border-left-style: solid;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.task-card.importance-high { border-left-color: var(--edge-high); }
+.task-card.importance-medium { border-left-color: var(--edge-medium); }
+.task-card.importance-low { border-left-color: var(--edge-low); }
+.task-card.done { animation: pop-done 0.45s ease; opacity: 0.55; }
+
+@keyframes pop-done {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.check {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border: 2px solid var(--text-faint);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+.check:hover { border-color: var(--accent); }
+
+.empty-hint { color: var(--text-faint); font-size: 13px; margin-top: 8px; }
+
+.add-task { display: flex; gap: 8px; margin-top: 12px; }
+.add-task input[type='text'] {
+  flex: 1;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.add-task select {
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.today-rail { flex: 1; padding: 14px 16px; align-self: flex-start; border-radius: var(--radius-card); background: var(--rail-bg); border: 1px solid var(--rail-border); }
+.today-rail .placeholder-copy { color: var(--text-faint); font-size: 13px; margin-top: 8px; line-height: 1.5; }
+
+.win-line { text-align: center; color: var(--text-faint); font-size: 13px; margin-top: 20px; }
+
+@media (max-width: 640px) {
+  .layout { flex-direction: column; }
+  .today-rail { width: 100%; }
+}
