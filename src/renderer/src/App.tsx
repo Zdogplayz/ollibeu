@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import type { OllibeuData } from '@shared/types'
+import type { Importance, OllibeuData, Task } from '@shared/types'
 import { resolveTheme } from '@shared/theme'
+import { completedTodayCount } from '@shared/dayText'
 import Greeting from './components/Greeting'
+import TaskList from './components/TaskList'
+import AddTask from './components/AddTask'
 import { quoteForDate } from './quotes'
 import './theme.css'
 
@@ -36,9 +39,34 @@ export default function App() {
   function update(fn: (d: OllibeuData) => OllibeuData): void {
     setData((prev) => (prev ? fn(prev) : prev))
   }
-  void update // used from Task 7 onward
+
+  const [justDoneId, setJustDoneId] = useState<string | null>(null)
+
+  function addTask(title: string, importance: Importance): void {
+    const task: Task = {
+      id: crypto.randomUUID(),
+      title,
+      importance,
+      source: 'local',
+      createdAt: new Date().toISOString()
+    }
+    update((d) => ({ ...d, tasks: [...d.tasks, task] }))
+  }
+
+  function completeTask(id: string): void {
+    setJustDoneId(id)
+    update((d) => ({
+      ...d,
+      tasks: d.tasks.map((t) => (t.id === id ? { ...t, completedAt: new Date().toISOString() } : t)),
+      appState: d.appState.activeTaskId === id ? {} : d.appState
+    }))
+    setTimeout(() => setJustDoneId(null), 500)
+  }
 
   if (!data) return null
+
+  const openTasks = data.tasks.filter((t) => !t.completedAt)
+  const wins = completedTodayCount(data.tasks, now)
 
   return (
     <>
@@ -49,9 +77,18 @@ export default function App() {
         quote={data.settings.quotesEnabled ? quoteForDate(now) : null}
       />
       <main className="layout">
-        <div className="focus-column">{/* JustOneThing + TaskList land in Tasks 7–8 */}</div>
+        <div className="focus-column">
+          <div className="section-label">The rest — no rush</div>
+          <TaskList tasks={openTasks} justDoneId={justDoneId} onComplete={completeTask} />
+          <AddTask onAdd={addTask} />
+        </div>
         {/* TodayRail lands in Task 9 */}
       </main>
+      {wins > 0 && (
+        <div className="win-line">
+          {wins} {wins === 1 ? 'thing' : 'things'} today ✨
+        </div>
+      )}
     </>
   )
 }
