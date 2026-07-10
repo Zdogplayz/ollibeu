@@ -65,4 +65,20 @@ describe('pickOneThing', () => {
     expect(pickOneThing(tasks, NOW)?.id).toBe('a')
     expect(pickOneThing([...tasks].reverse(), NOW)?.id).toBe('a')
   })
+
+  it('a due time already passed today outranks one later today', () => {
+    const tasks = [
+      task({ id: 'a', dueDate: '2026-07-10', dueTime: '16:00' }),
+      task({ id: 'b', dueDate: '2026-07-10', dueTime: '09:00' })
+    ]
+    expect(pickOneThing(tasks, NOW)?.id).toBe('b')
+  })
+
+  it('dueTime absent falls back to end-of-day deadline', () => {
+    const tasks = [
+      task({ id: 'a', dueDate: '2026-07-10' }),
+      task({ id: 'b', dueDate: '2026-07-10', dueTime: '09:00' })
+    ]
+    expect(pickOneThing(tasks, NOW)?.id).toBe('b')
+  })
 })

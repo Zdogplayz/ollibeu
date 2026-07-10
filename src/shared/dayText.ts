@@ -17,3 +17,17 @@ function sameDay(a: Date, b: Date): boolean {
 export function completedTodayCount(tasks: Task[], now: Date): number {
   return tasks.filter((t) => t.completedAt && sameDay(new Date(t.completedAt), now)).length
 }
+
+export function dueLabel(dueDate: string, dueTime: string | undefined, now: Date): string {
+  const due = new Date(dueDate + 'T00:00:00')
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const diffDays = Math.round((due.getTime() - today.getTime()) / 86_400_000)
+  let day: string
+  if (diffDays === 0) day = 'today'
+  else if (diffDays === 1) day = 'tomorrow'
+  else day = due.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+  if (!dueTime) return day
+  const [h, m] = dueTime.split(':').map(Number)
+  const at = new Date(2000, 0, 1, h, m)
+  return `${day} · ${at.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`
+}
