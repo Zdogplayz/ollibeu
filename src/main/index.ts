@@ -1,5 +1,9 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
+import type { OllibeuData } from '../shared/types'
+import { loadData, saveData } from './storage'
+
+const dataPath = (): string => path.join(app.getPath('userData'), 'ollibeu-data.json')
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -18,6 +22,8 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  ipcMain.handle('data:load', () => loadData(dataPath()))
+  ipcMain.handle('data:save', (_event, data: OllibeuData) => saveData(dataPath(), data))
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
