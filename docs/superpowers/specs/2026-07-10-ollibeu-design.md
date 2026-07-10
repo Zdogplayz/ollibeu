@@ -48,6 +48,7 @@ Settings {
   leaveByBufferMinutes (default 25),
   launchAtLogin (default true, set during onboarding)
 }
+AppState { activeTaskId?  // task pinned via "I'll do this one" }
 CalendarCache { events for today + tomorrow, lastSyncedAt }
 GoogleAuth { tokens, encrypted at rest via safeStorage }
 ```
