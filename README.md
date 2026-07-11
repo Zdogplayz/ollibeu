@@ -45,20 +45,16 @@ Calendar and Tasks sync are optional, and connecting them takes a few minutes in
 1. Create a project in the [Google Cloud Console](https://console.cloud.google.com/).
 2. Enable the **Google Calendar API** and **Google Tasks API** for that project.
 3. Set up the **OAuth consent screen**: choose **External**, and while the app is unpublished, add yourself (and anyone else who'll use it) as **test users**.
-4. Create an **OAuth client ID** of type **Desktop app**.
-5. Save your credentials as a file named `google-oauth.json` with this shape:
+4. Create an **OAuth client ID** of type **Desktop app** — this gives you a Client ID and a Client secret.
+5. Open Ollibeu and **paste the two keys when it asks** — during onboarding, in the Today panel, or under **Settings → Google**. The app stores them for you.
+6. Click **Connect Google** and sign in.
 
-   ```json
-   { "clientId": "...", "clientSecret": "..." }
-   ```
+<details>
+<summary>Advanced: providing the keys as a file instead</summary>
 
-   Put it in Ollibeu's app data folder for your OS:
+Save them as `google-oauth.json` — `{ "clientId": "...", "clientSecret": "..." }` — in Ollibeu's data folder: macOS `~/Library/Application Support/ollibeu/`, Windows `%APPDATA%\ollibeu\`, Linux/dev `~/.config/ollibeu/`. Environment variables `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` also work and take precedence.
 
-   - **macOS:** `~/Library/Application Support/ollibeu/`
-   - **Windows:** `%APPDATA%\ollibeu\`
-   - **Linux / dev:** `~/.config/ollibeu/`
-
-6. Open Ollibeu and click **Connect Google**.
+</details>
 
 That's it — Calendar and Tasks will start syncing.
 

@@ -41,14 +41,20 @@ export class GoogleAuth {
   private pendingAuthUrl: string | null = null
   private persistQueue: Promise<void> = Promise.resolve()
 
-  private constructor(tokenPath: string, config: GoogleClientConfig | null, tokens: StoredTokens | null) {
+  private constructor(
+    tokenPath: string,
+    private readonly oauthJsonPath: string,
+    config: GoogleClientConfig | null,
+    tokens: StoredTokens | null
+  ) {
     this.tokenPath = tokenPath
     this.config = config
     this.tokens = tokens
   }
 
   static async create(userDataDir: string): Promise<GoogleAuth> {
-    const config = await loadGoogleConfig(process.env, path.join(userDataDir, 'google-oauth.json'))
+    const oauthJsonPath = path.join(userDataDir, 'google-oauth.json')
+    const config = await loadGoogleConfig(process.env, oauthJsonPath)
     const tokenPath = path.join(userDataDir, 'google-tokens.bin')
     let tokens: StoredTokens | null = null
     try {
@@ -63,7 +69,26 @@ export class GoogleAuth {
     if (process.platform === 'linux') {
       console.warn('[ollibeu] safeStorage backend:', safeStorage.getSelectedStorageBackend())
     }
-    return new GoogleAuth(tokenPath, config, tokens)
+    return new GoogleAuth(tokenPath, oauthJsonPath, config, tokens)
+  }
+
+  /** Save client credentials entered in the app; persists so future launches find them. */
+  async setClientConfig(input: { clientId: string; clientSecret?: string }): Promise<GoogleStatus> {
+    const clientId = input.clientId.trim()
+    const clientSecret = input.clientSecret?.trim()
+    if (!clientId) return this.status()
+    const config: GoogleClientConfig = { clientId, ...(clientSecret ? { clientSecret } : {}) }
+    // serialize with token persistence, and rm-then-write so mode 0600 applies
+    // even when a key file already exists (Node ignores mode on existing files)
+    this.persistQueue = this.persistQueue.catch(() => undefined).then(async () => {
+      await fs.mkdir(path.dirname(this.oauthJsonPath), { recursive: true })
+      await fs.rm(this.oauthJsonPath, { force: true })
+      await fs.writeFile(this.oauthJsonPath, JSON.stringify(config, null, 2), { mode: 0o600 })
+    })
+    await this.persistQueue
+    this.config = config
+    this.emit()
+    return this.status()
   }
 
   onStatusChange(cb: (s: GoogleStatus) => void): () => void {

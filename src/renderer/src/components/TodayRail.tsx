@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { eventsForDay, leaveByLabel, nextEventCountdown, relativeSyncLabel, tomorrowPeek } from '@shared/gcal'
 import type { AddEventInput, AddEventResult, CalendarCache, GoogleStatus } from '@shared/types'
 import AddEvent from './AddEvent'
+import GoogleSetup from './GoogleSetup'
 
 function toDateStr(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -99,10 +100,13 @@ export default function TodayRail(props: {
           )}
         </>
       ) : props.google.state === 'unconfigured' ? (
-        <p className="placeholder-copy">
-          Google isn't set up on this build yet — the person who installed Ollibeu can add the
-          key. Everything else works without it.
-        </p>
+        <>
+          <p className="placeholder-copy">
+            Connect Google to see your day here. This build just needs its two setup keys
+            first — paste them below, or skip it; everything else works without Google.
+          </p>
+          <GoogleSetup compact />
+        </>
       ) : (
         <>
           <p className="placeholder-copy">

@@ -39,6 +39,9 @@ app.whenReady().then(async () => {
   ipcMain.handle('google:status', () => google.status())
   ipcMain.handle('google:connect', () => google.connect())
   ipcMain.handle('google:disconnect', () => google.disconnect())
+  ipcMain.handle('google:set-config', (_e, input: { clientId: string; clientSecret?: string }) =>
+    google.setClientConfig(input)
+  )
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
