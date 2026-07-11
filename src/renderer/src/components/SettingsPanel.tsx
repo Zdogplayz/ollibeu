@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import type { Settings } from '@shared/types'
 
 export default function SettingsPanel(props: {
@@ -6,12 +7,38 @@ export default function SettingsPanel(props: {
   onClose: () => void
 }) {
   const s = props.settings
+  const [name, setName] = useState(props.settings.displayName)
+  const doneRef = useRef<HTMLButtonElement>(null)
+
+  function commitAndClose(): void {
+    if (name !== props.settings.displayName) props.onChange({ displayName: name })
+    props.onClose()
+  }
+
+  useEffect(() => {
+    doneRef.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent): void {
+      if (e.key === 'Escape') commitAndClose()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name])
+
   return (
-    <div className="settings-overlay" role="dialog" aria-label="Settings">
-      <div className="settings-panel card">
+    <div
+      className="settings-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) commitAndClose()
+      }}
+    >
+      <div className="settings-panel card" role="dialog" aria-modal="true" aria-label="Settings">
         <div className="settings-head">
           <div className="section-label">Settings</div>
-          <button type="button" className="pill-button quiet" onClick={props.onClose}>
+          <button type="button" className="pill-button quiet" ref={doneRef} onClick={commitAndClose}>
             done
           </button>
         </div>
@@ -19,9 +46,12 @@ export default function SettingsPanel(props: {
           <span>Your name</span>
           <input
             type="text"
-            value={s.displayName}
+            value={name}
             placeholder="what should we call you?"
-            onChange={(e) => props.onChange({ displayName: e.target.value })}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={() => {
+              if (name !== props.settings.displayName) props.onChange({ displayName: name })
+            }}
           />
         </label>
         <label className="settings-row">
@@ -61,7 +91,10 @@ export default function SettingsPanel(props: {
               value={s.idleDing.thresholdMinutes}
               onChange={(e) =>
                 props.onChange({
-                  idleDing: { ...s.idleDing, thresholdMinutes: Math.max(3, Number(e.target.value) || 10) }
+                  idleDing: {
+                    ...s.idleDing,
+                    thresholdMinutes: Math.min(120, Math.max(3, Number(e.target.value) || 10))
+                  }
                 })
               }
             />

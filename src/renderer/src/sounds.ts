@@ -1,6 +1,12 @@
+let ctx: AudioContext | null = null
+function audioContext(): AudioContext {
+  if (!ctx || ctx.state === 'closed') ctx = new AudioContext()
+  return ctx
+}
+
 export function playChime(kind: 'win' | 'ding'): void {
   try {
-    const ctx = new AudioContext()
+    const ctx = audioContext()
     const notes = kind === 'win' ? [523.25, 783.99] : [659.25]
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator()
@@ -15,7 +21,6 @@ export function playChime(kind: 'win' | 'ding'): void {
       osc.start(t0)
       osc.stop(t0 + 0.65)
     })
-    window.setTimeout(() => void ctx.close(), 1200)
   } catch {
     // sound is a nicety, never an error
   }
