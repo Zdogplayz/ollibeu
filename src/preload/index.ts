@@ -1,5 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { AppState, GoogleStatus, OllibeuData, Settings, Task } from '../shared/types'
+import type {
+  AddEventInput,
+  AddEventResult,
+  AppState,
+  GoogleStatus,
+  OllibeuData,
+  Settings,
+  Task
+} from '../shared/types'
 
 function subscribe<T>(channel: string) {
   return (cb: (payload: T) => void): (() => void) => {
@@ -29,5 +37,10 @@ contextBridge.exposeInMainWorld('ollibeu', {
     disconnect: (): Promise<GoogleStatus> => ipcRenderer.invoke('google:disconnect')
   },
   onGoogleStatusChanged: subscribe<GoogleStatus>('google:status-changed'),
-  syncNow: (): Promise<void> => ipcRenderer.invoke('sync:now')
+  syncNow: (): Promise<void> => ipcRenderer.invoke('sync:now'),
+  calendar: {
+    addEvent: (input: AddEventInput): Promise<AddEventResult> =>
+      ipcRenderer.invoke('calendar:add-event', input)
+  },
+  onIdleDing: subscribe<null>('idle:ding')
 })
