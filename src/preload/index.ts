@@ -28,5 +28,6 @@ contextBridge.exposeInMainWorld('ollibeu', {
     connect: (): Promise<GoogleStatus> => ipcRenderer.invoke('google:connect'),
     disconnect: (): Promise<GoogleStatus> => ipcRenderer.invoke('google:disconnect')
   },
-  onGoogleStatusChanged: subscribe<GoogleStatus>('google:status-changed')
+  onGoogleStatusChanged: subscribe<GoogleStatus>('google:status-changed'),
+  syncNow: (): Promise<void> => ipcRenderer.invoke('sync:now')
 })

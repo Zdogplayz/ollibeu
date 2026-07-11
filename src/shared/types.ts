@@ -2,6 +2,19 @@ export type Importance = 'high' | 'medium' | 'low'
 export type TaskSource = 'local' | 'gtasks'
 export type TaskSortMode = 'importance' | 'soonest'
 
+export interface CalendarEvent {
+  id: string
+  title: string
+  start: string // ISO datetime, or "YYYY-MM-DD" for all-day
+  end: string
+  allDay: boolean
+}
+
+export interface CalendarCache {
+  events: CalendarEvent[]
+  lastSyncedAt: string // ISO datetime
+}
+
 export interface Task {
   id: string
   title: string
@@ -15,6 +28,7 @@ export interface Task {
   createdAt: string // ISO datetime
   completedAt?: string // ISO datetime
   snoozedUntil?: string // ISO datetime
+  gtasksSyncPending?: boolean
 }
 
 export interface IdleDingSettings {
@@ -43,6 +57,7 @@ export interface OllibeuData {
   tasks: Task[]
   settings: Settings
   appState: AppState
+  calendar?: CalendarCache
 }
 
 export interface GoogleStatus {

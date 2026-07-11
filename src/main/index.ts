@@ -3,6 +3,7 @@ import path from 'path'
 import type { AppState, Settings, Task } from '../shared/types'
 import { DataStore } from './dataStore'
 import { GoogleAuth } from './google/auth'
+import { SyncEngine } from './google/sync'
 
 const dataPath = (): string => path.join(app.getPath('userData'), 'ollibeu-data.json')
 
@@ -62,19 +63,31 @@ app.whenReady().then(async () => {
   ipcMain.handle('task:add', (_e, task: Task) =>
     store.mutate((d) => ({ ...d, tasks: [...d.tasks, task] }))
   )
-  ipcMain.handle('task:complete', (_e, id: string, completedAt: string) =>
-    store.mutate((d) => ({
-      ...d,
-      tasks: d.tasks.map((t) => (t.id === id ? { ...t, completedAt } : t)),
-      appState: d.appState.activeTaskId === id ? {} : d.appState
-    }))
-  )
   ipcMain.handle('settings:set', (_e, patch: Partial<Settings>) =>
     store.mutate((d) => ({ ...d, settings: { ...d.settings, ...patch } }))
   )
   ipcMain.handle('appstate:set', (_e, patch: Partial<AppState>) =>
     store.mutate((d) => ({ ...d, appState: { ...d.appState, ...patch } }))
   )
+
+  const syncEngine = new SyncEngine(store, google)
+
+  ipcMain.handle('task:complete', async (_e, id: string, completedAt: string) => {
+    let wasGtasks = false
+    await store.mutate((d) => ({
+      ...d,
+      tasks: d.tasks.map((t) => {
+        if (t.id !== id) return t
+        if (t.source === 'gtasks') wasGtasks = true
+        return { ...t, completedAt, ...(t.source === 'gtasks' ? { gtasksSyncPending: true } : {}) }
+      }),
+      appState: d.appState.activeTaskId === id ? {} : d.appState
+    }))
+    if (wasGtasks) void syncEngine.syncNow()
+  })
+  ipcMain.handle('sync:now', () => syncEngine.syncNow())
+
+  syncEngine.start()
 
   createWindow()
 })

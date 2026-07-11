@@ -1,12 +1,19 @@
 import { useEffect, useState } from 'react'
-import type { GoogleStatus } from '@shared/types'
+import { eventsForDay, leaveByLabel, tomorrowPeek } from '@shared/gcal'
+import type { CalendarCache, GoogleStatus } from '@shared/types'
 
 export default function TodayRail(props: {
   night: boolean
   google: GoogleStatus
   onConnect: () => void
+  calendar?: CalendarCache
+  leaveByBufferMinutes: number
+  now: Date
 }) {
   const [copied, setCopied] = useState(false)
+
+  const events = props.calendar?.events ?? []
+  const todayEvents = eventsForDay(events, props.now)
 
   // A fresh link (or leaving the connecting state) resets the copied marker
   useEffect(() => {
@@ -25,10 +32,39 @@ export default function TodayRail(props: {
     <aside className="today-rail">
       <div className="section-label">Today</div>
       {props.google.state === 'connected' ? (
-        <p className="placeholder-copy">
-          Google connected{props.google.email ? ` as ${props.google.email}` : ''} ✓ — your
-          calendar arrives in the next update.
-        </p>
+        <>
+          <div className="rail-timeline">
+            {todayEvents.length === 0 ? (
+              <p className="placeholder-copy">Nothing on the calendar today 🍃</p>
+            ) : (
+              todayEvents.map((e) => {
+                const started = !e.allDay && new Date(e.start) <= props.now
+                const leaveBy = leaveByLabel(e, props.leaveByBufferMinutes, props.now)
+                return (
+                  <div key={e.id} className={`rail-event${started ? ' started' : ''}`}>
+                    <div className="rail-time">
+                      {e.allDay
+                        ? 'all day'
+                        : new Date(e.start).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+                    </div>
+                    <div className="rail-event-title">{e.title}</div>
+                    {leaveBy && <div className="rail-leave-by">{leaveBy}</div>}
+                  </div>
+                )
+              })
+            )}
+          </div>
+          <p className="rail-tomorrow">{tomorrowPeek(events, props.now)}</p>
+          {props.calendar && (
+            <p className="rail-synced">
+              synced{' '}
+              {new Date(props.calendar.lastSyncedAt).toLocaleTimeString(undefined, {
+                hour: 'numeric',
+                minute: '2-digit'
+              })}
+            </p>
+          )}
+        </>
       ) : props.google.state === 'connecting' ? (
         <>
           <p className="placeholder-copy">

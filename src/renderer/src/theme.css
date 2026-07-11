@@ -19,6 +19,7 @@
   --card-shadow: 0 2px 8px rgba(120, 150, 130, 0.12);
   --rail-bg: rgba(255, 255, 255, 0.5);
   --rail-border: #dde7da;
+  --warm-note: #b0846a;
 }
 
 :root[data-theme='night'] {
@@ -34,6 +35,7 @@
   --card-shadow: none;
   --rail-bg: rgba(150, 200, 170, 0.06);
   --rail-border: rgba(160, 210, 180, 0.15);
+  --warm-note: #d9a583;
 }
 
 * { box-sizing: border-box; margin: 0; }
@@ -193,6 +195,15 @@ body {
 .win-line { text-align: center; color: var(--text-faint); font-size: 13px; margin-top: 20px; }
 
 .today-rail .pill-button { margin: 6px 0 10px; }
+
+.rail-timeline { border-left: 2px solid var(--rail-border); padding-left: 10px; margin: 4px 0 10px; }
+.rail-event { margin-bottom: 10px; }
+.rail-event.started { opacity: 0.55; }
+.rail-time { color: var(--text-faint); font-size: 10px; }
+.rail-event-title { font-size: 13px; color: var(--text); }
+.rail-leave-by { font-size: 10px; color: var(--warm-note); }
+.rail-tomorrow { color: var(--text-faint); font-size: 11px; border-top: 1px solid var(--rail-border); padding-top: 8px; }
+.rail-synced { color: var(--text-faint); font-size: 10px; margin-top: 6px; }
 
 @media (max-width: 640px) {
   .layout { flex-direction: column; }
