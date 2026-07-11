@@ -10,6 +10,7 @@ import AddTask from './components/AddTask'
 import JustOneThing from './components/JustOneThing'
 import TodayRail from './components/TodayRail'
 import SettingsPanel from './components/SettingsPanel'
+import Onboarding from './components/Onboarding'
 import { quoteForDate } from './quotes'
 import { playChime } from './sounds'
 import './theme.css'
@@ -153,6 +154,15 @@ export default function App() {
           settings={data.settings}
           onChange={(patch) => void window.ollibeu.mutate.setSettings(patch)}
           onClose={() => setSettingsOpen(false)}
+        />
+      )}
+      {!data.settings.onboarded && (
+        <Onboarding
+          settings={data.settings}
+          google={google}
+          onChange={(patch) => void window.ollibeu.mutate.setSettings(patch)}
+          onConnect={() => void window.ollibeu.google.connect().catch(() => {})}
+          onDone={() => void window.ollibeu.mutate.setSettings({ onboarded: true })}
         />
       )}
       <Greeting

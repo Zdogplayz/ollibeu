@@ -438,3 +438,33 @@ body {
   border-color: color-mix(in srgb, var(--warm-note) 45%, transparent);
   background: color-mix(in srgb, var(--warm-note) 10%, transparent);
 }
+
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(160deg, var(--bg-a) 0%, var(--bg-b) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+.onboarding-card { width: 440px; max-width: 92vw; padding: 28px; text-align: center; }
+.onboarding-step h2 { font-size: 22px; margin-bottom: 10px; }
+.onboarding-step p { color: var(--text-soft); font-size: 14px; line-height: 1.6; margin-bottom: 14px; }
+.onboarding-step input[type='text'] {
+  width: 100%;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 15px;
+  text-align: center;
+}
+.onboarding-good { color: var(--accent-soft); font-weight: 600; }
+.onboarding-toggle { display: flex; gap: 10px; justify-content: center; align-items: center; font-size: 14px; }
+.onboarding-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; }
+.onboarding-dots { display: flex; gap: 6px; }
+.onboarding-dots .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--card-border); }
+.onboarding-dots .dot.active { background: var(--accent); }
+.onboarding-buttons { display: flex; gap: 8px; }
