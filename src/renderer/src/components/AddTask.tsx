@@ -2,12 +2,19 @@ import { useRef, useState } from 'react'
 import type { Importance } from '@shared/types'
 
 export default function AddTask(props: {
-  onAdd: (title: string, importance: Importance, dueDate?: string, dueTime?: string) => void
+  onAdd: (
+    title: string,
+    importance: Importance,
+    dueDate?: string,
+    dueTime?: string,
+    repeat?: 'daily' | 'weekly' | 'monthly'
+  ) => void
 }) {
   const [title, setTitle] = useState('')
   const [importance, setImportance] = useState<Importance>('medium')
   const [dueDate, setDueDate] = useState('')
   const [dueTime, setDueTime] = useState('')
+  const [repeat, setRepeat] = useState<'' | 'daily' | 'weekly' | 'monthly'>('')
   const dateRef = useRef<HTMLInputElement>(null)
   const timeRef = useRef<HTMLInputElement>(null)
 
@@ -25,10 +32,17 @@ export default function AddTask(props: {
     e.preventDefault()
     const trimmed = title.trim()
     if (!trimmed) return
-    props.onAdd(trimmed, importance, dueDate || undefined, dueDate ? dueTime || undefined : undefined)
+    props.onAdd(
+      trimmed,
+      importance,
+      dueDate || undefined,
+      dueDate ? dueTime || undefined : undefined,
+      dueDate ? repeat || undefined : undefined
+    )
     setTitle('')
     setDueDate('')
     setDueTime('')
+    setRepeat('')
   }
 
   return (
@@ -62,7 +76,10 @@ export default function AddTask(props: {
           value={dueDate}
           onChange={(e) => {
             setDueDate(e.target.value)
-            if (!e.target.value) setDueTime('')
+            if (!e.target.value) {
+              setDueTime('')
+              setRepeat('')
+            }
           }}
         />
       </label>
@@ -80,6 +97,17 @@ export default function AddTask(props: {
           onChange={(e) => setDueTime(e.target.value)}
         />
       </label>
+      <select
+        aria-label="Repeat (optional)"
+        value={repeat}
+        disabled={!dueDate}
+        onChange={(e) => setRepeat(e.target.value as '' | 'daily' | 'weekly' | 'monthly')}
+      >
+        <option value="">no repeat</option>
+        <option value="daily">daily</option>
+        <option value="weekly">weekly</option>
+        <option value="monthly">monthly</option>
+      </select>
       <button type="submit" className="pill-button">
         add
       </button>

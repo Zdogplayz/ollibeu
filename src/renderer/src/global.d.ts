@@ -16,6 +16,7 @@ declare global {
       mutate: {
         addTask(task: Task): Promise<void>
         completeTask(id: string, completedAt: string): Promise<void>
+        snoozeTask(id: string, untilIso: string): Promise<void>
         setSettings(patch: Partial<Settings>): Promise<void>
         setAppState(patch: Partial<AppState>): Promise<void>
       }

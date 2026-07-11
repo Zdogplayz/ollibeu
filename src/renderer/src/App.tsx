@@ -4,6 +4,7 @@ import { resolveTheme } from '@shared/theme'
 import { completedTodayCount, finishedLabel } from '@shared/dayText'
 import { pickOneThing } from '@shared/pickOne'
 import { sortTasks } from '@shared/taskSort'
+import { snoozeUntilTomorrow } from '@shared/recurrence'
 import Greeting from './components/Greeting'
 import TaskList from './components/TaskList'
 import AddTask from './components/AddTask'
@@ -79,7 +80,13 @@ export default function App() {
 
   const [shuffledAway, setShuffledAway] = useState<string[]>([])
 
-  function addTask(title: string, importance: Importance, dueDate?: string, dueTime?: string): void {
+  function addTask(
+    title: string,
+    importance: Importance,
+    dueDate?: string,
+    dueTime?: string,
+    repeat?: 'daily' | 'weekly' | 'monthly'
+  ): void {
     const task: Task = {
       id: crypto.randomUUID(),
       title,
@@ -87,7 +94,8 @@ export default function App() {
       source: 'local',
       createdAt: new Date().toISOString(),
       ...(dueDate ? { dueDate } : {}),
-      ...(dueTime ? { dueTime } : {})
+      ...(dueTime ? { dueTime } : {}),
+      ...(repeat ? { repeat } : {})
     }
     void window.ollibeu.mutate.addTask(task)
   }
@@ -115,6 +123,10 @@ export default function App() {
     })
   }
 
+  function snoozeTask(id: string): void {
+    void window.ollibeu.mutate.snoozeTask(id, snoozeUntilTomorrow(new Date()))
+  }
+
   function shuffleOneThing(id: string): void {
     const nextExcluded = [...shuffledAway, id]
     const nextPick = data ? pickOneThing(data.tasks, now, nextExcluded) : null
@@ -133,10 +145,17 @@ export default function App() {
 
   // The one-thing card is a spotlight, not a removal — every open task stays in the list
   const openTasks = sortTasks(
-    data.tasks.filter((t) => !t.completedAt || t.id === justDoneId),
+    data.tasks.filter(
+      (t) =>
+        (!t.completedAt || t.id === justDoneId) &&
+        (t.id === justDoneId || !t.snoozedUntil || new Date(t.snoozedUntil) <= now)
+    ),
     data.settings.taskSort,
     now
   )
+  const restingCount = data.tasks.filter(
+    (t) => !t.completedAt && t.snoozedUntil && new Date(t.snoozedUntil) > now
+  ).length
   const wins = completedTodayCount(data.tasks, now)
   const finishedTasks = data.tasks
     .filter((t) => t.completedAt && t.id !== justDoneId)
@@ -220,7 +239,11 @@ export default function App() {
             now={now}
             onComplete={completeTask}
             onTogglePin={togglePin}
+            onSnooze={snoozeTask}
           />
+          {restingCount > 0 && (
+            <p className="resting-line">{restingCount} resting until tomorrow 🌙</p>
+          )}
           <AddTask onAdd={addTask} />
         </div>
         <TodayRail

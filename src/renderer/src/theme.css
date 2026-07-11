@@ -307,6 +307,25 @@ body {
   border-radius: 8px;
   padding: 0 10px;
 }
+
+.snooze-button {
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  opacity: 0.45;
+  cursor: pointer;
+  flex: none;
+}
+
+.snooze-button:hover {
+  opacity: 1;
+}
+
+.resting-line {
+  color: var(--text-faint);
+  font-size: 12px;
+  margin-top: 6px;
+}
 .when-field .field-icon {
   width: 15px;
   height: 15px;

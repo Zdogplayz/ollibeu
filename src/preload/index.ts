@@ -24,6 +24,8 @@ contextBridge.exposeInMainWorld('ollibeu', {
     addTask: (task: Task): Promise<void> => ipcRenderer.invoke('task:add', task),
     completeTask: (id: string, completedAt: string): Promise<void> =>
       ipcRenderer.invoke('task:complete', id, completedAt),
+    snoozeTask: (id: string, untilIso: string): Promise<void> =>
+      ipcRenderer.invoke('task:snooze', id, untilIso),
     setSettings: (patch: Partial<Settings>): Promise<void> =>
       ipcRenderer.invoke('settings:set', patch),
     setAppState: (patch: Partial<AppState>): Promise<void> =>

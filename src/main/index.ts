@@ -1,6 +1,8 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
+import { randomUUID } from 'node:crypto'
 import type { AddEventInput, AddEventResult, AppState, Settings, Task } from '../shared/types'
+import { completeRecurring } from '../shared/recurrence'
 import { DataStore } from './dataStore'
 import { GoogleAuth } from './google/auth'
 import { GoogleApi } from './google/api'
@@ -96,17 +98,33 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('task:complete', async (_e, id: string, completedAt: string) => {
     let wasGtasks = false
-    await store.mutate((d) => ({
-      ...d,
-      tasks: d.tasks.map((t) => {
+    await store.mutate((d) => {
+      const dones: Task[] = []
+      const tasks = d.tasks.map((t) => {
         if (t.id !== id) return t
+        if (t.source === 'local' && t.repeat) {
+          const { done, next } = completeRecurring(t, completedAt, randomUUID())
+          dones.push(done)
+          return next
+        }
         if (t.source === 'gtasks') wasGtasks = true
         return { ...t, completedAt, ...(t.source === 'gtasks' ? { gtasksSyncPending: true } : {}) }
-      }),
-      appState: d.appState.activeTaskId === id ? {} : d.appState
-    }))
+      })
+      return {
+        ...d,
+        tasks: [...tasks, ...dones],
+        appState: d.appState.activeTaskId === id ? {} : d.appState
+      }
+    })
     if (wasGtasks) void syncEngine.syncNow()
   })
+  ipcMain.handle('task:snooze', (_e, id: string, untilIso: string) =>
+    store.mutate((d) => ({
+      ...d,
+      tasks: d.tasks.map((t) => (t.id === id ? { ...t, snoozedUntil: untilIso } : t)),
+      appState: d.appState.activeTaskId === id ? {} : d.appState
+    }))
+  )
   ipcMain.handle('sync:now', () => syncEngine.syncNow())
 
   ipcMain.handle('calendar:add-event', async (_e, input: AddEventInput): Promise<AddEventResult> => {
