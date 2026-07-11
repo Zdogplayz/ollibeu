@@ -78,3 +78,28 @@ export function tomorrowPeek(events: CalendarEvent[], now: Date): string {
   if (firstAt) return `Tomorrow: ${list.length} things, first at ${firstAt}`
   return `Tomorrow: ${list.length} ${list.length === 1 ? 'thing' : 'things'} on the calendar`
 }
+
+export function nextDayStr(date: string): string {
+  const d = new Date(date + 'T00:00:00')
+  d.setDate(d.getDate() + 1)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+export function relativeSyncLabel(lastIso: string, now: Date): string {
+  const last = new Date(lastIso)
+  if (Number.isNaN(last.getTime())) return ''
+  const mins = Math.floor((now.getTime() - last.getTime()) / 60_000)
+  if (mins < 2) return 'synced just now'
+  if (mins < 60) return `synced ${mins} min ago`
+  return `synced at ${last.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`
+}
+
+export function nextEventCountdown(events: CalendarEvent[], now: Date): string | null {
+  const upcoming = eventsForDay(events, now)
+    .filter((e) => !e.allDay && eventStart(e) > now)
+    .sort((a, b) => eventStart(a).getTime() - eventStart(b).getTime())[0]
+  if (!upcoming) return null
+  const mins = Math.round((eventStart(upcoming).getTime() - now.getTime()) / 60_000)
+  if (mins <= 120) return `${upcoming.title} in ${mins} min`
+  return `${upcoming.title} at ${eventStart(upcoming).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`
+}

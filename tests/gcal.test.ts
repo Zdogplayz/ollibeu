@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CalendarEvent } from '../src/shared/types'
-import { eventsForDay, leaveByLabel, mapGoogleEvent, tomorrowPeek } from '../src/shared/gcal'
+import { eventsForDay, leaveByLabel, mapGoogleEvent, tomorrowPeek, nextDayStr, relativeSyncLabel, nextEventCountdown } from '../src/shared/gcal'
 
 const NOW = new Date(2026, 6, 10, 14, 0) // Fri Jul 10, 2:00 pm
 
@@ -81,5 +81,37 @@ describe('tomorrowPeek', () => {
   it('handles an all-day-only tomorrow', () => {
     const events = [ev({ id: 'a', start: '2026-07-11', end: '2026-07-12', allDay: true })]
     expect(tomorrowPeek(events, NOW)).toBe('Tomorrow: 1 thing on the calendar')
+  })
+})
+
+describe('nextDayStr', () => {
+  it('increments including month and year rollovers', () => {
+    expect(nextDayStr('2026-07-11')).toBe('2026-07-12')
+    expect(nextDayStr('2026-07-31')).toBe('2026-08-01')
+    expect(nextDayStr('2026-12-31')).toBe('2027-01-01')
+  })
+})
+
+describe('relativeSyncLabel', () => {
+  const now = new Date(2026, 6, 10, 14, 0)
+  it('grades recency gently', () => {
+    expect(relativeSyncLabel(new Date(2026, 6, 10, 13, 59, 30).toISOString(), now)).toBe('synced just now')
+    expect(relativeSyncLabel(new Date(2026, 6, 10, 13, 35).toISOString(), now)).toBe('synced 25 min ago')
+    expect(relativeSyncLabel(new Date(2026, 6, 10, 9, 15).toISOString(), now)).toMatch(/^synced at 9:15/)
+  })
+})
+
+describe('nextEventCountdown', () => {
+  const now = new Date(2026, 6, 10, 14, 0)
+  it('counts down a near event in minutes', () => {
+    const events = [ev({ id: 'd', title: 'Dentist', start: '2026-07-10T15:30:00', end: '2026-07-10T16:30:00' })]
+    expect(nextEventCountdown(events, now)).toBe('Dentist in 90 min')
+  })
+  it('uses a clock time for later today, null otherwise', () => {
+    const later = [ev({ id: 'l', title: 'Call', start: '2026-07-10T19:00:00', end: '2026-07-10T19:30:00' })]
+    expect(nextEventCountdown(later, now)).toMatch(/^Call at 7:00/)
+    expect(nextEventCountdown([], now)).toBeNull()
+    const past = [ev({ id: 'p', start: '2026-07-10T09:00:00', end: '2026-07-10T10:00:00' })]
+    expect(nextEventCountdown(past, now)).toBeNull()
   })
 })
