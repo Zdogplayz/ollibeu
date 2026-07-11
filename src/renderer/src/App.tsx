@@ -202,6 +202,13 @@ export default function App() {
           calendar={data.calendar}
           leaveByBufferMinutes={data.settings.leaveByBufferMinutes}
           now={now}
+          onAddEvent={(input) => window.ollibeu.calendar.addEvent(input)}
+          onReauth={() =>
+            void window.ollibeu.google
+              .disconnect()
+              .then(() => window.ollibeu.google.connect())
+              .catch(() => {})
+          }
         />
       </main>
       {wins > 0 && (

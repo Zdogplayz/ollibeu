@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import { eventsForDay, leaveByLabel, tomorrowPeek } from '@shared/gcal'
-import type { CalendarCache, GoogleStatus } from '@shared/types'
+import type { AddEventInput, AddEventResult, CalendarCache, GoogleStatus } from '@shared/types'
+import AddEvent from './AddEvent'
+
+function toDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 export default function TodayRail(props: {
   night: boolean
@@ -9,6 +14,8 @@ export default function TodayRail(props: {
   calendar?: CalendarCache
   leaveByBufferMinutes: number
   now: Date
+  onAddEvent: (input: AddEventInput) => Promise<AddEventResult>
+  onReauth: () => void
 }) {
   const [copied, setCopied] = useState(false)
 
@@ -64,6 +71,7 @@ export default function TodayRail(props: {
               })}
             </p>
           )}
+          <AddEvent onAdd={props.onAddEvent} onReauth={props.onReauth} today={toDateStr(props.now)} />
         </>
       ) : props.google.state === 'connecting' ? (
         <>

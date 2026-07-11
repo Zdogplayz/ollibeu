@@ -205,6 +205,23 @@ body {
 .rail-tomorrow { color: var(--text-faint); font-size: 11px; border-top: 1px solid var(--rail-border); padding-top: 8px; }
 .rail-synced { color: var(--text-faint); font-size: 10px; margin-top: 6px; }
 
+.rail-add { display: block; margin-top: 8px; font-size: 12px; }
+.add-event { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.add-event input[type='text'],
+.add-event input[type='date'],
+.add-event input[type='time'],
+.add-event select {
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  min-width: 0;
+}
+.add-event-when { display: flex; flex-wrap: wrap; gap: 6px; }
+.add-event-actions { display: flex; gap: 8px; }
+
 @media (max-width: 640px) {
   .layout { flex-direction: column; }
   .today-rail { width: 100%; }
