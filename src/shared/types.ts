@@ -38,6 +38,7 @@ export interface Task {
   completedAt?: string // ISO datetime
   snoozedUntil?: string // ISO datetime
   gtasksSyncPending?: boolean
+  repeat?: 'daily' | 'weekly' | 'monthly'
 }
 
 export interface IdleDingSettings {
@@ -58,6 +59,8 @@ export interface Settings {
   launchAtLogin: boolean
   taskSort: TaskSortMode
   onboarded: boolean
+  gardenEnabled: boolean
+  quickCaptureEnabled: boolean
 }
 
 export interface AppState {
@@ -89,5 +92,7 @@ export const DEFAULT_SETTINGS: Settings = {
   leaveByBufferMinutes: 25,
   launchAtLogin: true,
   taskSort: 'importance',
-  onboarded: false
+  onboarded: false,
+  gardenEnabled: true,
+  quickCaptureEnabled: true
 }
