@@ -107,6 +107,7 @@ export default function App() {
   }
 
   function completeTask(id: string): void {
+    if (id === justDoneId) return
     window.clearTimeout(doneTimer.current)
     setJustDoneId(id)
     if (data?.settings.soundsEnabled) playChime('win')

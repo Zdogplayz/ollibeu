@@ -71,6 +71,9 @@ export default function TaskList(props: {
           >
             🌙
           </button>
+          {/* For recurring tasks, justDoneId matches the forward-dated `next` row
+              (same id), so the celebration deliberately rides that row — the
+              completed history copy has a fresh id and never mounts confetti. */}
           {t.id === props.justDoneId && <ConfettiBurst />}
         </li>
       ))}

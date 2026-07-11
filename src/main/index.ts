@@ -142,9 +142,13 @@ app.whenReady().then(async () => {
       const tasks = d.tasks.map((t) => {
         if (t.id !== id) return t
         if (t.source === 'local' && t.repeat) {
-          const { done, next } = completeRecurring(t, completedAt, randomUUID())
-          dones.push(done)
-          return next
+          try {
+            const { done, next } = completeRecurring(t, completedAt, randomUUID())
+            dones.push(done)
+            return next
+          } catch {
+            console.warn('[ollibeu] recurrence skipped for malformed task', t.id)
+          }
         }
         if (t.source === 'gtasks') wasGtasks = true
         return { ...t, completedAt, ...(t.source === 'gtasks' ? { gtasksSyncPending: true } : {}) }

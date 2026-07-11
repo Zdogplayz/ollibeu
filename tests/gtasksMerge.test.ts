@@ -98,6 +98,13 @@ describe('mergeGtasks', () => {
     expect(tasks.map((t) => t.id)).toEqual(['t1'])
   })
 
+  it('keeps completed history when Google clears completed tasks', () => {
+    const done = gtaskRow({ id: 't1', gtasksId: 'g1', completedAt: '2026-07-10T10:00:00' })
+    const open = gtaskRow({ id: 't2', gtasksId: 'g2' })
+    const { tasks } = mergeGtasks([done, open], [], NOW)
+    expect(tasks.map((t) => t.id)).toEqual(['t1'])
+  })
+
   it('never queues a pending row that lacks a listId', () => {
     const row = { ...gtaskRow({ id: 't1', gtasksId: 'g1', completedAt: NOW, gtasksSyncPending: true }), gtasksListId: undefined }
     const { tasks, toComplete } = mergeGtasks([row], [], NOW)

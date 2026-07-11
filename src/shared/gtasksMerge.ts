@@ -45,9 +45,10 @@ export function mergeGtasks(
     const key = `${t.gtasksListId}:${t.gtasksId}`
     const r = remoteById.get(key)
     if (!r) {
-      // vanished remotely — drop the mirror row, unless this sync's snapshot was
-      // truncated (paginated fetch didn't complete) and deleting could be wrong
-      if (opts?.skipDeletions) tasks.push(t)
+      // vanished remotely — uncompleted mirrors drop, but completed rows are
+      // permanent history (the garden's "nothing ever wilts" promise)
+      if (t.completedAt) tasks.push(t)
+      else if (opts?.skipDeletions) tasks.push(t)
       continue
     }
     remoteById.delete(key)
