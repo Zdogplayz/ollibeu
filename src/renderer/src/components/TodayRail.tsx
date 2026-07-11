@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { eventsForDay, leaveByLabel, tomorrowPeek } from '@shared/gcal'
+import { eventsForDay, leaveByLabel, nextEventCountdown, relativeSyncLabel, tomorrowPeek } from '@shared/gcal'
 import type { AddEventInput, AddEventResult, CalendarCache, GoogleStatus } from '@shared/types'
 import AddEvent from './AddEvent'
 
@@ -21,6 +21,8 @@ export default function TodayRail(props: {
 
   const events = props.calendar?.events ?? []
   const todayEvents = eventsForDay(events, props.now)
+  const countdown = nextEventCountdown(events, props.now)
+  const nowIdx = todayEvents.findIndex((e) => !e.allDay && new Date(e.start) > props.now)
 
   // A fresh link (or leaving the connecting state) resets the copied marker
   useEffect(() => {
@@ -40,36 +42,44 @@ export default function TodayRail(props: {
       <div className="section-label">Today</div>
       {props.google.state === 'connected' ? (
         <>
-          <div className="rail-timeline">
-            {todayEvents.length === 0 ? (
-              <p className="placeholder-copy">Nothing on the calendar today 🍃</p>
-            ) : (
-              todayEvents.map((e) => {
-                const started = !e.allDay && new Date(e.start) <= props.now
-                const leaveBy = leaveByLabel(e, props.leaveByBufferMinutes, props.now)
-                return (
-                  <div key={e.id} className={`rail-event${started ? ' started' : ''}`}>
-                    <div className="rail-time">
-                      {e.allDay
-                        ? 'all day'
-                        : new Date(e.start).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
-                    </div>
-                    <div className="rail-event-title">{e.title}</div>
-                    {leaveBy && <div className="rail-leave-by">{leaveBy}</div>}
-                  </div>
-                )
-              })
-            )}
-          </div>
-          <p className="rail-tomorrow">{tomorrowPeek(events, props.now)}</p>
-          {props.calendar && (
-            <p className="rail-synced">
-              synced{' '}
-              {new Date(props.calendar.lastSyncedAt).toLocaleTimeString(undefined, {
-                hour: 'numeric',
-                minute: '2-digit'
-              })}
-            </p>
+          {!props.calendar ? (
+            <p className="placeholder-copy">Checking your calendar… 🌿</p>
+          ) : (
+            <>
+              {countdown && <p className="rail-countdown">{countdown}</p>}
+              <div className="rail-timeline">
+                {todayEvents.length === 0 ? (
+                  <p className="placeholder-copy">Nothing on the calendar today 🍃</p>
+                ) : (
+                  <>
+                    {todayEvents.flatMap((e, i) => {
+                      const started = !e.allDay && new Date(e.start) <= props.now
+                      const leaveBy = leaveByLabel(e, props.leaveByBufferMinutes, props.now)
+                      const eventEl = (
+                        <div key={e.id} className={`rail-event${started ? ' started' : ''}`}>
+                          <div className="rail-time">
+                            {e.allDay
+                              ? 'all day'
+                              : new Date(e.start).toLocaleTimeString(undefined, {
+                                  hour: 'numeric',
+                                  minute: '2-digit'
+                                })}
+                          </div>
+                          <div className="rail-event-title">{e.title}</div>
+                          {leaveBy && <div className="rail-leave-by">{leaveBy}</div>}
+                        </div>
+                      )
+                      return i === nowIdx
+                        ? [<div key="now" className="rail-now">now</div>, eventEl]
+                        : [eventEl]
+                    })}
+                    {nowIdx === -1 && <div key="now" className="rail-now">now</div>}
+                  </>
+                )}
+              </div>
+              <p className="rail-tomorrow">{tomorrowPeek(events, props.now)}</p>
+              <p className="rail-synced">{relativeSyncLabel(props.calendar.lastSyncedAt, props.now)}</p>
+            </>
           )}
           <AddEvent onAdd={props.onAddEvent} onReauth={props.onReauth} today={toDateStr(props.now)} />
         </>
@@ -110,7 +120,11 @@ export default function TodayRail(props: {
         </>
       )}
       <p className="placeholder-copy">
-        {props.night ? 'Rest is productive too. ✨' : 'One thing at a time. 🍃'}
+        {props.night
+          ? nextEventCountdown(events, props.now) === null
+            ? 'Your evening is yours. Rest is productive too. ✨'
+            : 'Rest is productive too. ✨'
+          : 'One thing at a time. 🍃'}
       </p>
     </aside>
   )
