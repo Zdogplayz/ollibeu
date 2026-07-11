@@ -272,7 +272,8 @@ export default function App() {
         <div className="win-line">
           {wins > 0 && (
             <>
-              {wins} {wins === 1 ? 'thing' : 'things'} today ✨{' · '}
+              {wins} {wins === 1 ? 'thing' : 'things'} today ✨
+              {(data.settings.gardenEnabled || finishedTasks.length > 0) && ' · '}
             </>
           )}
           {data.settings.gardenEnabled && (
@@ -280,7 +281,7 @@ export default function App() {
               <button type="button" className="link-button" onClick={() => setGardenOpen(true)}>
                 garden 🌱
               </button>
-              {' · '}
+              {finishedTasks.length > 0 && ' · '}
             </>
           )}
           {finishedTasks.length > 0 && (
