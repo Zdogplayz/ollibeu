@@ -1,5 +1,5 @@
-import type { CalendarEvent } from '../../shared/types'
-import { mapGoogleEvent } from '../../shared/gcal'
+import type { AddEventInput, CalendarEvent } from '../../shared/types'
+import { mapGoogleEvent, nextDayStr } from '../../shared/gcal'
 import type { RemoteGtask } from '../../shared/gtasksMerge'
 
 export type FetchLike = (
@@ -102,5 +102,28 @@ export class GoogleApi {
       `${TASKS}/lists/${encodeURIComponent(listId)}/tasks/${encodeURIComponent(taskId)}`,
       { method: 'PATCH', body: JSON.stringify({ status: 'completed' }) }
     )
+  }
+
+  async insertEvent(input: AddEventInput): Promise<void> {
+    let payload: unknown
+    if (input.time) {
+      const start = new Date(`${input.date}T${input.time}:00`)
+      const end = new Date(start.getTime() + (input.durationMinutes ?? 60) * 60_000)
+      payload = {
+        summary: input.title,
+        start: { dateTime: start.toISOString() },
+        end: { dateTime: end.toISOString() }
+      }
+    } else {
+      payload = {
+        summary: input.title,
+        start: { date: input.date },
+        end: { date: nextDayStr(input.date) }
+      }
+    }
+    await this.request(`${CAL}/calendars/primary/events`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
   }
 }

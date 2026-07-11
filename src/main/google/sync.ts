@@ -27,6 +27,7 @@ export class SyncEngine {
     if (this.timer) return
     this.timer = setInterval(() => void this.syncNow(), SYNC_INTERVAL_MS)
     powerMonitor.on('resume', this.handleResume)
+    powerMonitor.on('unlock-screen', this.handleResume)
     this.unsubscribeAuth = this.auth.onStatusChange((s) => {
       if (s.state === 'connected') void this.syncNow()
     })
@@ -37,6 +38,7 @@ export class SyncEngine {
     if (this.timer) clearInterval(this.timer)
     this.timer = null
     powerMonitor.removeListener('resume', this.handleResume)
+    powerMonitor.removeListener('unlock-screen', this.handleResume)
     this.unsubscribeAuth?.()
     this.unsubscribeAuth = null
   }

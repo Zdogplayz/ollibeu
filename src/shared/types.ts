@@ -2,6 +2,15 @@ export type Importance = 'high' | 'medium' | 'low'
 export type TaskSource = 'local' | 'gtasks'
 export type TaskSortMode = 'importance' | 'soonest'
 
+export interface AddEventInput {
+  title: string
+  date: string // YYYY-MM-DD
+  time?: string // HH:MM — absent = all-day
+  durationMinutes?: number // default 60; ignored for all-day
+}
+
+export type AddEventResult = { ok: true } | { ok: false; reason: 'needs-reauth' | 'unreachable' }
+
 export interface CalendarEvent {
   id: string
   title: string
@@ -44,6 +53,7 @@ export interface Settings {
   idleDing: IdleDingSettings
   gamificationEnabled: boolean
   quotesEnabled: boolean
+  soundsEnabled: boolean
   leaveByBufferMinutes: number
   launchAtLogin: boolean
   taskSort: TaskSortMode
@@ -74,6 +84,7 @@ export const DEFAULT_SETTINGS: Settings = {
   idleDing: { enabled: false, thresholdMinutes: 10 },
   gamificationEnabled: false,
   quotesEnabled: true,
+  soundsEnabled: true,
   leaveByBufferMinutes: 25,
   launchAtLogin: true,
   taskSort: 'importance'

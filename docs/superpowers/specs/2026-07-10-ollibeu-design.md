@@ -56,7 +56,7 @@ GoogleAuth { tokens, encrypted at rest via safeStorage }
 ## Google integration
 
 - **OAuth 2.0** installed-app loopback flow with PKCE, opened in the system browser during onboarding. Skippable — the app is fully usable with local tasks only.
-- **Scopes:** `calendar.readonly` (display only, never modify) and Google Tasks read/write.
+- **Scopes:** `calendar.events` (display events, plus creating events from Ollibeu — an approved Phase 3 scope expansion; originally read-only) and Google Tasks read/write.
 - **Sync:** background poll every ~5 minutes plus on wake/unlock. Calendar events → Today rail. Google Tasks ↔ task list two-way: completing in Ollibeu completes in Google; new Google tasks appear in Ollibeu. Local and Google tasks coexist, distinguished by `source`.
 - **Known caveat:** until Google verification (a later, for-profit-stage step), sign-in shows an "unverified app" interstitial once. Acceptable for v1's assisted setup. The Google Cloud OAuth app runs in production mode so refresh tokens do not expire weekly.
 

@@ -1,9 +1,11 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
-import type { AppState, Settings, Task } from '../shared/types'
+import type { AddEventInput, AddEventResult, AppState, Settings, Task } from '../shared/types'
 import { DataStore } from './dataStore'
 import { GoogleAuth } from './google/auth'
+import { GoogleApi } from './google/api'
 import { SyncEngine } from './google/sync'
+import { IdleWatcher } from './idleWatcher'
 
 const dataPath = (): string => path.join(app.getPath('userData'), 'ollibeu-data.json')
 
@@ -70,7 +72,8 @@ app.whenReady().then(async () => {
     store.mutate((d) => ({ ...d, appState: { ...d.appState, ...patch } }))
   )
 
-  const syncEngine = new SyncEngine(store, google)
+  const api = new GoogleApi(() => google.getAccessToken())
+  const syncEngine = new SyncEngine(store, google, api)
 
   ipcMain.handle('task:complete', async (_e, id: string, completedAt: string) => {
     let wasGtasks = false
@@ -87,7 +90,39 @@ app.whenReady().then(async () => {
   })
   ipcMain.handle('sync:now', () => syncEngine.syncNow())
 
+  ipcMain.handle('calendar:add-event', async (_e, input: AddEventInput): Promise<AddEventResult> => {
+    try {
+      await api.insertEvent(input)
+      void syncEngine.syncNow()
+      return { ok: true }
+    } catch (err) {
+      const msg = (err as Error).message
+      if (msg === 'google-api:403') return { ok: false, reason: 'needs-reauth' }
+      if (msg === 'google-api:401') {
+        google.expireAccessToken()
+        return { ok: false, reason: 'unreachable' }
+      }
+      return { ok: false, reason: 'unreachable' }
+    }
+  })
+
   syncEngine.start()
+
+  const idleWatcher = new IdleWatcher(store, () => broadcast('idle:ding', null))
+  idleWatcher.start()
+
+  let lastOpenAtLogin: boolean | null = null
+  const applyLoginItem = (wanted: boolean): void => {
+    if (wanted === lastOpenAtLogin) return
+    lastOpenAtLogin = wanted
+    if (app.isPackaged) {
+      app.setLoginItemSettings({ openAtLogin: wanted })
+    } else {
+      console.warn('[ollibeu] dev build: skipping login-item change, would set', wanted)
+    }
+  }
+  applyLoginItem(store.get().settings.launchAtLogin)
+  store.onChange((d) => applyLoginItem(d.settings.launchAtLogin))
 
   createWindow()
 })

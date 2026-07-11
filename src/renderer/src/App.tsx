@@ -9,7 +9,9 @@ import TaskList from './components/TaskList'
 import AddTask from './components/AddTask'
 import JustOneThing from './components/JustOneThing'
 import TodayRail from './components/TodayRail'
+import SettingsPanel from './components/SettingsPanel'
 import { quoteForDate } from './quotes'
+import { playChime } from './sounds'
 import './theme.css'
 
 export default function App() {
@@ -18,6 +20,12 @@ export default function App() {
   const [loadTrouble, setLoadTrouble] = useState(false)
   const [saveTrouble, setSaveTrouble] = useState(false)
   const [google, setGoogle] = useState<GoogleStatus>({ state: 'disconnected' })
+  const [settingsOpen, setSettingsOpen] = useState(false)
+
+  const dataRef = useRef<OllibeuData | null>(null)
+  useEffect(() => {
+    dataRef.current = data
+  }, [data])
 
   useEffect(() => {
     let cancelled = false
@@ -34,11 +42,15 @@ export default function App() {
     void window.ollibeu.getSaveTrouble().then(setSaveTrouble).catch(() => {})
     void window.ollibeu.google.status().then(setGoogle)
     const offGoogle = window.ollibeu.onGoogleStatusChanged(setGoogle)
+    const offDing = window.ollibeu.onIdleDing(() => {
+      if (dataRef.current?.settings.soundsEnabled) playChime('ding')
+    })
     return () => {
       cancelled = true
       offData()
       offTrouble()
       offGoogle()
+      offDing()
     }
   }, [])
 
@@ -73,6 +85,7 @@ export default function App() {
   function completeTask(id: string): void {
     window.clearTimeout(doneTimer.current)
     setJustDoneId(id)
+    if (data?.settings.soundsEnabled) playChime('win')
     void window.ollibeu.mutate.completeTask(id, new Date().toISOString())
     doneTimer.current = window.setTimeout(() => setJustDoneId(null), 850)
   }
@@ -121,6 +134,21 @@ export default function App() {
 
   return (
     <>
+      <button
+        type="button"
+        className="settings-button"
+        aria-label="Settings"
+        onClick={() => setSettingsOpen(true)}
+      >
+        ⚙
+      </button>
+      {settingsOpen && (
+        <SettingsPanel
+          settings={data.settings}
+          onChange={(patch) => void window.ollibeu.mutate.setSettings(patch)}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
       <Greeting
         name={data.settings.displayName}
         now={now}
@@ -174,6 +202,13 @@ export default function App() {
           calendar={data.calendar}
           leaveByBufferMinutes={data.settings.leaveByBufferMinutes}
           now={now}
+          onAddEvent={(input) => window.ollibeu.calendar.addEvent(input)}
+          onReauth={() =>
+            void window.ollibeu.google
+              .disconnect()
+              .then(() => window.ollibeu.google.connect())
+              .catch(() => {})
+          }
         />
       </main>
       {wins > 0 && (

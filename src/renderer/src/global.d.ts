@@ -1,4 +1,12 @@
-import type { AppState, GoogleStatus, OllibeuData, Settings, Task } from '@shared/types'
+import type {
+  AddEventInput,
+  AddEventResult,
+  AppState,
+  GoogleStatus,
+  OllibeuData,
+  Settings,
+  Task
+} from '@shared/types'
 
 declare global {
   interface Window {
@@ -20,6 +28,10 @@ declare global {
       }
       onGoogleStatusChanged(cb: (s: GoogleStatus) => void): () => void
       syncNow(): Promise<void>
+      calendar: {
+        addEvent(input: AddEventInput): Promise<AddEventResult>
+      }
+      onIdleDing(cb: (d: null) => void): () => void
     }
   }
 }
