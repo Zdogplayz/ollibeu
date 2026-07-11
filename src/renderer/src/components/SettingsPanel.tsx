@@ -106,6 +106,14 @@ export default function SettingsPanel(props: {
           </label>
         )}
         <label className="settings-row">
+          <span>Quick capture (Ctrl/Cmd+Shift+O)</span>
+          <input
+            type="checkbox"
+            checked={s.quickCaptureEnabled}
+            onChange={(e) => props.onChange({ quickCaptureEnabled: e.target.checked })}
+          />
+        </label>
+        <label className="settings-row">
           <span>Open Ollibeu when the computer starts</span>
           <input
             type="checkbox"

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain } from 'electron'
 import path from 'path'
 import { randomUUID } from 'node:crypto'
 import type { AddEventInput, AddEventResult, AppState, Settings, Task } from '../shared/types'
@@ -47,6 +47,37 @@ function createWindow(): BrowserWindow {
 function broadcast(channel: string, payload: unknown): void {
   for (const win of BrowserWindow.getAllWindows()) {
     win.webContents.send(channel, payload)
+  }
+}
+
+let captureWin: BrowserWindow | null = null
+
+function openCapture(): void {
+  if (captureWin && !captureWin.isDestroyed()) {
+    captureWin.show()
+    captureWin.focus()
+    return
+  }
+  captureWin = new BrowserWindow({
+    width: 440,
+    height: 84,
+    frame: false,
+    alwaysOnTop: true,
+    resizable: false,
+    skipTaskbar: true,
+    show: false,
+    backgroundColor: '#f2f5ef',
+    webPreferences: { preload: path.join(__dirname, '../preload/index.js') }
+  })
+  captureWin.once('ready-to-show', () => captureWin?.show())
+  captureWin.on('blur', () => captureWin?.close())
+  captureWin.on('closed', () => {
+    captureWin = null
+  })
+  if (process.env['ELECTRON_RENDERER_URL']) {
+    captureWin.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/capture.html`)
+  } else {
+    captureWin.loadFile(path.join(__dirname, '../renderer/capture.html'))
   }
 }
 
@@ -161,9 +192,31 @@ app.whenReady().then(async () => {
   applyLoginItem(store.get().settings.launchAtLogin)
   store.onChange((d) => applyLoginItem(d.settings.launchAtLogin))
 
+  let captureShortcutRegistered = false
+  const CAPTURE_ACCELERATOR = 'CommandOrControl+Shift+O'
+  const syncCaptureShortcut = (enabled: boolean): void => {
+    if (enabled && !captureShortcutRegistered) {
+      const ok = globalShortcut.register(CAPTURE_ACCELERATOR, openCapture)
+      if (ok) {
+        captureShortcutRegistered = true
+      } else {
+        console.warn('[ollibeu] failed to register quick-capture shortcut')
+      }
+    } else if (!enabled && captureShortcutRegistered) {
+      globalShortcut.unregister(CAPTURE_ACCELERATOR)
+      captureShortcutRegistered = false
+    }
+  }
+  syncCaptureShortcut(store.get().settings.quickCaptureEnabled)
+  store.onChange((d) => syncCaptureShortcut(d.settings.quickCaptureEnabled))
+
   createWindow()
 })
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
+})
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll()
 })

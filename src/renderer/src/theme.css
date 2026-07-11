@@ -531,3 +531,14 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .idle-nudge { animation: none; }
 }
+
+.capture-box { padding: 14px; }
+.capture-box input {
+  width: 100%;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
