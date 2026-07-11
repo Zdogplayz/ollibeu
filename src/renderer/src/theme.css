@@ -550,3 +550,78 @@ body {
   padding: 10px 14px;
   font-size: 14px;
 }
+
+/* ── olive crown ───────────────────────────────────────────────── */
+
+.olive-crown {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 110px;
+  pointer-events: none;
+  /* NOTE: as a positioned layer this paints ABOVE unpositioned page content
+     regardless of z-index: 0 — it reads as "behind" purely because of its
+     low opacity and the sparse top band. Don't raise this z-index (the
+     settings gear wins only by later tree order), and keep the crown faint. */
+  z-index: 0;
+  overflow: hidden;
+}
+
+.olive-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 90% 130% at 50% -35%,
+    color-mix(in srgb, var(--accent) 16%, transparent),
+    transparent 72%
+  );
+}
+
+.olive-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 96px;
+  opacity: 0.55;
+}
+
+.olive-stem {
+  stroke: var(--text-soft);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+.olive-twig { stroke-width: 1.6; opacity: 0.7; }
+
+.olive-leaf { fill: var(--accent); opacity: 0.62; }
+.olive-leaf-soft { fill: var(--accent-soft); opacity: 0.5; }
+
+.olive-fruit {
+  fill: color-mix(in srgb, var(--accent) 42%, #3f3a52);
+  opacity: 0.9;
+}
+.olive-stemlet { stroke: var(--text-soft); stroke-width: 1.2; opacity: 0.7; }
+.olive-shine { fill: var(--bg-a); opacity: 0.55; }
+
+.olive-sway {
+  animation: olive-sway 10s ease-in-out infinite alternate;
+  transform-origin: 0px 12px;
+  transform-box: view-box;
+}
+.olive-sway-right {
+  /* mirrored group: keep its own origin at ITS branch base (right edge) */
+  transform-origin: 1440px 12px;
+  animation-duration: 12.5s;
+  animation-delay: -4s;
+}
+
+@keyframes olive-sway {
+  from { rotate: -0.45deg; }
+  to { rotate: 0.55deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .olive-sway { animation: none; }
+}

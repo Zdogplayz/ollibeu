@@ -10,6 +10,7 @@ import TaskList from './components/TaskList'
 import AddTask from './components/AddTask'
 import JustOneThing from './components/JustOneThing'
 import TodayRail from './components/TodayRail'
+import OliveCrown from './components/OliveCrown'
 import SettingsPanel from './components/SettingsPanel'
 import GardenPanel from './components/GardenPanel'
 import Onboarding from './components/Onboarding'
@@ -176,6 +177,7 @@ export default function App() {
 
   return (
     <>
+      <OliveCrown />
       <button
         type="button"
         className="settings-button"
