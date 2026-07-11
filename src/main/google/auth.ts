@@ -203,15 +203,24 @@ export class GoogleAuth {
           settle(() => reject(new Error('unconfigured')))
           return
         }
-        void shell.openExternal(
-          buildAuthUrl({
-            clientId: this.config.clientId,
-            redirectUri,
-            challenge,
-            scopes: SCOPES,
-            state
+        shell
+          .openExternal(
+            buildAuthUrl({
+              clientId: this.config.clientId,
+              redirectUri,
+              challenge,
+              scopes: SCOPES,
+              state
+            })
+          )
+          .catch((err) => {
+            // No system browser opener (e.g. bare WSL without xdg-open):
+            // end the flow immediately instead of hanging until the timeout.
+            console.error('[ollibeu] could not open the browser for sign-in', err)
+            clearTimeout(timer)
+            server.close()
+            settle(() => reject(new Error('browser-open-failed')))
           })
-        )
       })
     })
   }
