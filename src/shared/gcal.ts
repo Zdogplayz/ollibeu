@@ -63,7 +63,7 @@ export function leaveByLabel(event: CalendarEvent, bufferMinutes: number, now: D
   if (startOfDay(start).getTime() !== startOfDay(now).getTime()) return null
   if (start <= now) return null
   const leaveAt = new Date(start.getTime() - bufferMinutes * 60_000)
-  return `leave by ${leaveAt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`
+  return `get ready around ${leaveAt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`
 }
 
 export function tomorrowPeek(events: CalendarEvent[], now: Date): string {

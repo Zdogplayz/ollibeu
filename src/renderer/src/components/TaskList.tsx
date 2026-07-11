@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Task } from '@shared/types'
 import { dueLabel } from '@shared/dayText'
+import { isPastDue } from '@shared/taskSort'
 import ConfettiBurst from './ConfettiBurst'
 
 export default function TaskList(props: {
@@ -44,7 +45,17 @@ export default function TaskList(props: {
           >
             {t.title}
           </button>
-          {t.dueDate && <span className="due-chip">{dueLabel(t.dueDate, t.dueTime, props.now)}</span>}
+          {t.dueDate &&
+            (() => {
+              const past = isPastDue(t, props.now)
+              const label = dueLabel(t.dueDate, t.dueTime, props.now)
+              const text = past
+                ? label === 'today'
+                  ? 'waiting'
+                  : `waiting · ${label.replace(/^today · /, '')}`
+                : label
+              return <span className={`due-chip${past ? ' past' : ''}`}>{text}</span>
+            })()}
           {t.id === props.pinnedId && <span className="pinned-badge">up front ✨</span>}
           {t.id === props.justDoneId && <ConfettiBurst />}
         </li>

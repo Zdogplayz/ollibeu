@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Importance, OllibeuData, Task, TaskSortMode, GoogleStatus } from '@shared/types'
 import { resolveTheme } from '@shared/theme'
-import { completedTodayCount } from '@shared/dayText'
+import { completedTodayCount, finishedLabel } from '@shared/dayText'
 import { pickOneThing } from '@shared/pickOne'
 import { sortTasks } from '@shared/taskSort'
 import Greeting from './components/Greeting'
@@ -21,6 +21,7 @@ export default function App() {
   const [saveTrouble, setSaveTrouble] = useState(false)
   const [google, setGoogle] = useState<GoogleStatus>({ state: 'disconnected' })
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [showFinished, setShowFinished] = useState(false)
 
   const dataRef = useRef<OllibeuData | null>(null)
   useEffect(() => {
@@ -124,9 +125,14 @@ export default function App() {
   // The one-thing card is a spotlight, not a removal — every open task stays in the list
   const openTasks = sortTasks(
     data.tasks.filter((t) => !t.completedAt || t.id === justDoneId),
-    data.settings.taskSort
+    data.settings.taskSort,
+    now
   )
   const wins = completedTodayCount(data.tasks, now)
+  const finishedTasks = data.tasks
+    .filter((t) => t.completedAt && t.id !== justDoneId)
+    .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''))
+    .slice(0, 30)
 
   function setTaskSort(mode: TaskSortMode): void {
     void window.ollibeu.mutate.setSettings({ taskSort: mode })
@@ -211,10 +217,28 @@ export default function App() {
           }
         />
       </main>
-      {wins > 0 && (
+      {(wins > 0 || finishedTasks.length > 0) && (
         <div className="win-line">
-          {wins} {wins === 1 ? 'thing' : 'things'} today ✨
+          {wins > 0 && (
+            <>
+              {wins} {wins === 1 ? 'thing' : 'things'} today ✨{' · '}
+            </>
+          )}
+          <button type="button" className="link-button" onClick={() => setShowFinished((v) => !v)}>
+            {showFinished ? 'hide finished' : 'see finished'}
+          </button>
         </div>
+      )}
+      {showFinished && finishedTasks.length > 0 && (
+        <ul className="finished-list">
+          {finishedTasks.map((t) => (
+            <li key={t.id} className="finished-row">
+              <span className="check filled" aria-hidden="true" />
+              <span className="finished-title">{t.title}</span>
+              <span className="due-chip">{finishedLabel(t.completedAt ?? '', now)}</span>
+            </li>
+          ))}
+        </ul>
       )}
       {saveTrouble && (
         <div className="win-line">

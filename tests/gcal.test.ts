@@ -54,7 +54,7 @@ describe('eventsForDay', () => {
 
 describe('leaveByLabel', () => {
   it('labels an upcoming timed event today', () => {
-    expect(leaveByLabel(ev({ id: 'x' }), 25, NOW)).toMatch(/^leave by 3:35/)
+    expect(leaveByLabel(ev({ id: 'x' }), 25, NOW)).toMatch(/^get ready around 3:35/)
   })
   it('returns null for past events, all-day events, and other days', () => {
     expect(leaveByLabel(ev({ id: 'p', start: '2026-07-10T09:00:00', end: '2026-07-10T10:00:00' }), 25, NOW)).toBeNull()

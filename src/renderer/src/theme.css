@@ -408,3 +408,33 @@ body {
   .confetti-piece { animation: none; opacity: 0; }
   .task-card.done { animation: none; }
 }
+
+.finished-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px auto 0;
+  max-width: 420px;
+}
+.finished-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--text-soft);
+  opacity: 0.8;
+}
+.finished-title { flex: 1; min-width: 0; }
+.check.filled {
+  background: var(--accent);
+  border-color: var(--accent);
+  cursor: default;
+  width: 16px;
+  height: 16px;
+}
+
+.due-chip.past {
+  color: var(--warm-note);
+  border-color: color-mix(in srgb, var(--warm-note) 45%, transparent);
+  background: color-mix(in srgb, var(--warm-note) 10%, transparent);
+}
