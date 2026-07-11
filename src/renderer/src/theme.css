@@ -318,3 +318,49 @@ body {
   0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
   100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.5); opacity: 0; }
 }
+
+.settings-button {
+  position: fixed;
+  top: 14px;
+  right: 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 17px;
+  cursor: pointer;
+}
+.settings-button:hover { color: var(--accent-soft); }
+
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg-a) 55%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.settings-panel { width: 380px; max-width: 92vw; padding: 18px; }
+.settings-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row input[type='text'],
+.settings-row input[type='number'],
+.settings-row select {
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  max-width: 170px;
+}
+.settings-row input[type='number'] { width: 64px; }
