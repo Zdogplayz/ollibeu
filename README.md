@@ -46,8 +46,8 @@ Calendar and Tasks sync are optional, and connecting them takes a few minutes in
 
    Put it in Ollibeu's app data folder for your OS:
 
-   - **macOS:** `~/Library/Application Support/Ollibeu/`
-   - **Windows:** `%APPDATA%\Ollibeu\`
+   - **macOS:** `~/Library/Application Support/ollibeu/`
+   - **Windows:** `%APPDATA%\ollibeu\`
    - **Linux / dev:** `~/.config/ollibeu/`
 
 6. Open Ollibeu and click **Connect Google**.
