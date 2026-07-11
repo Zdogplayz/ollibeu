@@ -11,6 +11,7 @@ export default function TaskList(props: {
   now: Date
   onComplete: (id: string) => void
   onTogglePin: (id: string) => void
+  onSnooze: (id: string) => void
 }) {
   const listRef = useRef<HTMLUListElement>(null)
   const [overflowing, setOverflowing] = useState(false)
@@ -54,9 +55,25 @@ export default function TaskList(props: {
                   ? 'waiting'
                   : `waiting · ${label.replace(/^today · /, '')}`
                 : label
-              return <span className={`due-chip${past ? ' past' : ''}`}>{text}</span>
+              return (
+                <span className={`due-chip${past ? ' past' : ''}`}>
+                  {t.repeat ? `↻ ${text}` : text}
+                </span>
+              )
             })()}
           {t.id === props.pinnedId && <span className="pinned-badge">up front ✨</span>}
+          <button
+            type="button"
+            className="snooze-button"
+            title="not today"
+            aria-label={`Rest "${t.title}" until tomorrow`}
+            onClick={() => props.onSnooze(t.id)}
+          >
+            🌙
+          </button>
+          {/* For recurring tasks, justDoneId matches the forward-dated `next` row
+              (same id), so the celebration deliberately rides that row — the
+              completed history copy has a fresh id and never mounts confetti. */}
           {t.id === props.justDoneId && <ConfettiBurst />}
         </li>
       ))}

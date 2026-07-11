@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Importance, OllibeuData, Task, TaskSortMode, GoogleStatus } from '@shared/types'
+import type { Importance, OllibeuData, Task, TaskSortMode, GoogleStatus, UpdateHint } from '@shared/types'
 import { resolveTheme } from '@shared/theme'
 import { completedTodayCount, finishedLabel } from '@shared/dayText'
 import { pickOneThing } from '@shared/pickOne'
 import { sortTasks } from '@shared/taskSort'
+import { snoozeUntilTomorrow } from '@shared/recurrence'
 import Greeting from './components/Greeting'
 import TaskList from './components/TaskList'
 import AddTask from './components/AddTask'
 import JustOneThing from './components/JustOneThing'
 import TodayRail from './components/TodayRail'
 import SettingsPanel from './components/SettingsPanel'
+import GardenPanel from './components/GardenPanel'
 import Onboarding from './components/Onboarding'
 import { quoteForDate } from './quotes'
 import { playChime } from './sounds'
@@ -21,7 +23,9 @@ export default function App() {
   const [loadTrouble, setLoadTrouble] = useState(false)
   const [saveTrouble, setSaveTrouble] = useState(false)
   const [google, setGoogle] = useState<GoogleStatus>({ state: 'disconnected' })
+  const [updateHint, setUpdateHint] = useState<UpdateHint>({ available: false, current: '' })
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [gardenOpen, setGardenOpen] = useState(false)
   const [showFinished, setShowFinished] = useState(false)
   const [nudgeVisible, setNudgeVisible] = useState(false)
   const nudgeTimer = useRef<number | undefined>(undefined)
@@ -46,6 +50,8 @@ export default function App() {
     void window.ollibeu.getSaveTrouble().then(setSaveTrouble).catch(() => {})
     void window.ollibeu.google.status().then(setGoogle)
     const offGoogle = window.ollibeu.onGoogleStatusChanged(setGoogle)
+    void window.ollibeu.getUpdateHint().then(setUpdateHint).catch(() => {})
+    const offUpdate = window.ollibeu.onUpdateHint(setUpdateHint)
     const offDing = window.ollibeu.onIdleDing(() => {
       if (dataRef.current?.settings.soundsEnabled) playChime('ding')
       // the in-app nudge shows regardless of OS banner rules (e.g. macOS
@@ -59,6 +65,7 @@ export default function App() {
       offData()
       offTrouble()
       offGoogle()
+      offUpdate()
       offDing()
       window.clearTimeout(nudgeTimer.current)
     }
@@ -79,7 +86,13 @@ export default function App() {
 
   const [shuffledAway, setShuffledAway] = useState<string[]>([])
 
-  function addTask(title: string, importance: Importance, dueDate?: string, dueTime?: string): void {
+  function addTask(
+    title: string,
+    importance: Importance,
+    dueDate?: string,
+    dueTime?: string,
+    repeat?: 'daily' | 'weekly' | 'monthly'
+  ): void {
     const task: Task = {
       id: crypto.randomUUID(),
       title,
@@ -87,12 +100,14 @@ export default function App() {
       source: 'local',
       createdAt: new Date().toISOString(),
       ...(dueDate ? { dueDate } : {}),
-      ...(dueTime ? { dueTime } : {})
+      ...(dueTime ? { dueTime } : {}),
+      ...(repeat ? { repeat } : {})
     }
     void window.ollibeu.mutate.addTask(task)
   }
 
   function completeTask(id: string): void {
+    if (id === justDoneId) return
     window.clearTimeout(doneTimer.current)
     setJustDoneId(id)
     if (data?.settings.soundsEnabled) playChime('win')
@@ -115,6 +130,10 @@ export default function App() {
     })
   }
 
+  function snoozeTask(id: string): void {
+    void window.ollibeu.mutate.snoozeTask(id, snoozeUntilTomorrow(new Date()))
+  }
+
   function shuffleOneThing(id: string): void {
     const nextExcluded = [...shuffledAway, id]
     const nextPick = data ? pickOneThing(data.tasks, now, nextExcluded) : null
@@ -133,11 +152,19 @@ export default function App() {
 
   // The one-thing card is a spotlight, not a removal — every open task stays in the list
   const openTasks = sortTasks(
-    data.tasks.filter((t) => !t.completedAt || t.id === justDoneId),
+    data.tasks.filter(
+      (t) =>
+        (!t.completedAt || t.id === justDoneId) &&
+        (t.id === justDoneId || !t.snoozedUntil || new Date(t.snoozedUntil) <= now)
+    ),
     data.settings.taskSort,
     now
   )
+  const restingCount = data.tasks.filter(
+    (t) => !t.completedAt && t.snoozedUntil && new Date(t.snoozedUntil) > now
+  ).length
   const wins = completedTodayCount(data.tasks, now)
+  const completedCount = data.tasks.filter((t) => t.completedAt).length
   const finishedTasks = data.tasks
     .filter((t) => t.completedAt && t.id !== justDoneId)
     .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''))
@@ -161,12 +188,17 @@ export default function App() {
         <SettingsPanel
           settings={data.settings}
           google={google}
+          updateHint={updateHint}
           onChange={(patch) => void window.ollibeu.mutate.setSettings(patch)}
           onConnect={() => void window.ollibeu.google.connect().catch(() => {})}
           onDisconnect={() => void window.ollibeu.google.disconnect().catch(() => {})}
           onResetGoogle={() => void window.ollibeu.google.clearConfig().catch(() => {})}
+          onOpenRelease={(url) => void window.ollibeu.openReleasePage(url).catch(() => {})}
           onClose={() => setSettingsOpen(false)}
         />
+      )}
+      {gardenOpen && (
+        <GardenPanel completedCount={completedCount} onClose={() => setGardenOpen(false)} />
       )}
       {!data.settings.onboarded && (
         <Onboarding
@@ -220,7 +252,11 @@ export default function App() {
             now={now}
             onComplete={completeTask}
             onTogglePin={togglePin}
+            onSnooze={snoozeTask}
           />
+          {restingCount > 0 && (
+            <p className="resting-line">{restingCount} resting until tomorrow 🌙</p>
+          )}
           <AddTask onAdd={addTask} />
         </div>
         <TodayRail
@@ -239,16 +275,27 @@ export default function App() {
           }
         />
       </main>
-      {(wins > 0 || finishedTasks.length > 0) && (
+      {(wins > 0 || finishedTasks.length > 0 || data.settings.gardenEnabled) && (
         <div className="win-line">
           {wins > 0 && (
             <>
-              {wins} {wins === 1 ? 'thing' : 'things'} today ✨{' · '}
+              {wins} {wins === 1 ? 'thing' : 'things'} today ✨
+              {(data.settings.gardenEnabled || finishedTasks.length > 0) && ' · '}
             </>
           )}
-          <button type="button" className="link-button" onClick={() => setShowFinished((v) => !v)}>
-            {showFinished ? 'hide finished' : 'see finished'}
-          </button>
+          {data.settings.gardenEnabled && (
+            <>
+              <button type="button" className="link-button" onClick={() => setGardenOpen(true)}>
+                garden 🌱
+              </button>
+              {finishedTasks.length > 0 && ' · '}
+            </>
+          )}
+          {finishedTasks.length > 0 && (
+            <button type="button" className="link-button" onClick={() => setShowFinished((v) => !v)}>
+              {showFinished ? 'hide finished' : 'see finished'}
+            </button>
+          )}
         </div>
       )}
       {showFinished && finishedTasks.length > 0 && (

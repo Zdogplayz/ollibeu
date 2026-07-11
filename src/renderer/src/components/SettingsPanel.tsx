@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import type { GoogleStatus, Settings } from '@shared/types'
+import type { GoogleStatus, Settings, UpdateHint } from '@shared/types'
 import GoogleSetup from './GoogleSetup'
 
 export default function SettingsPanel(props: {
   settings: Settings
   google: GoogleStatus
+  updateHint: UpdateHint
   onChange: (patch: Partial<Settings>) => void
   onConnect: () => void
   onDisconnect: () => void
   onResetGoogle: () => void
+  onOpenRelease: (url: string) => void
   onClose: () => void
 }) {
   const s = props.settings
@@ -106,6 +108,14 @@ export default function SettingsPanel(props: {
           </label>
         )}
         <label className="settings-row">
+          <span>Quick capture (Ctrl/Cmd+Shift+O)</span>
+          <input
+            type="checkbox"
+            checked={s.quickCaptureEnabled}
+            onChange={(e) => props.onChange({ quickCaptureEnabled: e.target.checked })}
+          />
+        </label>
+        <label className="settings-row">
           <span>Open Ollibeu when the computer starts</span>
           <input
             type="checkbox"
@@ -119,6 +129,14 @@ export default function SettingsPanel(props: {
             type="checkbox"
             checked={s.quotesEnabled}
             onChange={(e) => props.onChange({ quotesEnabled: e.target.checked })}
+          />
+        </label>
+        <label className="settings-row">
+          <span>Garden 🌱</span>
+          <input
+            type="checkbox"
+            checked={s.gardenEnabled}
+            onChange={(e) => props.onChange({ gardenEnabled: e.target.checked })}
           />
         </label>
         <div className="settings-row settings-google">
@@ -150,6 +168,39 @@ export default function SettingsPanel(props: {
             — clears the saved keys and sign-in.
           </p>
         )}
+        <div className="settings-row settings-google">
+          <span>Updates</span>
+          {(() => {
+            const hint = props.updateHint
+            if (!hint.available) {
+              return (
+                <span className="settings-google-status">
+                  Ollibeu {hint.current} — up to date as far as we know 🌿
+                </span>
+              )
+            }
+            if (hint.url === '') {
+              return (
+                <span className="settings-google-status">
+                  A fresh Ollibeu ({hint.version}) is ready — it installs next time you open the
+                  app ✨
+                </span>
+              )
+            }
+            return (
+              <span className="settings-google-status">
+                Ollibeu {hint.version} is ready —{' '}
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => props.onOpenRelease(hint.url)}
+                >
+                  download it
+                </button>
+              </span>
+            )
+          })()}
+        </div>
       </div>
     </div>
   )

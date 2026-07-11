@@ -6,7 +6,8 @@ import type {
   GoogleStatus,
   OllibeuData,
   Settings,
-  Task
+  Task,
+  UpdateHint
 } from '../shared/types'
 
 function subscribe<T>(channel: string) {
@@ -24,6 +25,8 @@ contextBridge.exposeInMainWorld('ollibeu', {
     addTask: (task: Task): Promise<void> => ipcRenderer.invoke('task:add', task),
     completeTask: (id: string, completedAt: string): Promise<void> =>
       ipcRenderer.invoke('task:complete', id, completedAt),
+    snoozeTask: (id: string, untilIso: string): Promise<void> =>
+      ipcRenderer.invoke('task:snooze', id, untilIso),
     setSettings: (patch: Partial<Settings>): Promise<void> =>
       ipcRenderer.invoke('settings:set', patch),
     setAppState: (patch: Partial<AppState>): Promise<void> =>
@@ -45,5 +48,8 @@ contextBridge.exposeInMainWorld('ollibeu', {
     addEvent: (input: AddEventInput): Promise<AddEventResult> =>
       ipcRenderer.invoke('calendar:add-event', input)
   },
-  onIdleDing: subscribe<null>('idle:ding')
+  onIdleDing: subscribe<null>('idle:ding'),
+  getUpdateHint: (): Promise<UpdateHint> => ipcRenderer.invoke('update:get-hint'),
+  onUpdateHint: subscribe<UpdateHint>('update:hint'),
+  openReleasePage: (url: string): Promise<void> => ipcRenderer.invoke('shell:open-release', url)
 })

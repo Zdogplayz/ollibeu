@@ -5,7 +5,8 @@ import type {
   GoogleStatus,
   OllibeuData,
   Settings,
-  Task
+  Task,
+  UpdateHint
 } from '@shared/types'
 
 declare global {
@@ -16,6 +17,7 @@ declare global {
       mutate: {
         addTask(task: Task): Promise<void>
         completeTask(id: string, completedAt: string): Promise<void>
+        snoozeTask(id: string, untilIso: string): Promise<void>
         setSettings(patch: Partial<Settings>): Promise<void>
         setAppState(patch: Partial<AppState>): Promise<void>
       }
@@ -34,6 +36,9 @@ declare global {
         addEvent(input: AddEventInput): Promise<AddEventResult>
       }
       onIdleDing(cb: (d: null) => void): () => void
+      getUpdateHint(): Promise<UpdateHint>
+      onUpdateHint(cb: (h: UpdateHint) => void): () => void
+      openReleasePage(url: string): Promise<void>
     }
   }
 }
