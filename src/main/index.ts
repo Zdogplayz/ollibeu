@@ -42,6 +42,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('google:set-config', (_e, input: { clientId: string; clientSecret?: string }) =>
     google.setClientConfig(input)
   )
+  ipcMain.handle('google:clear-config', () => google.clearClientConfig())
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

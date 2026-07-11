@@ -8,6 +8,7 @@ export default function SettingsPanel(props: {
   onChange: (patch: Partial<Settings>) => void
   onConnect: () => void
   onDisconnect: () => void
+  onResetGoogle: () => void
   onClose: () => void
 }) {
   const s = props.settings
@@ -140,6 +141,15 @@ export default function SettingsPanel(props: {
           )}
         </div>
         {props.google.state === 'unconfigured' && <GoogleSetup compact />}
+        {props.google.state !== 'unconfigured' && (
+          <p className="settings-reset-line">
+            Google acting up?{' '}
+            <button type="button" className="link-button" onClick={props.onResetGoogle}>
+              start Google over
+            </button>{' '}
+            — clears the saved keys and sign-in.
+          </p>
+        )}
       </div>
     </div>
   )
