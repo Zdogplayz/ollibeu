@@ -86,6 +86,12 @@ export default function App() {
     void window.ollibeu.mutate.setAppState({ activeTaskId: id })
   }
 
+  function togglePin(id: string): void {
+    void window.ollibeu.mutate.setAppState({
+      activeTaskId: pinnedTask?.id === id ? undefined : id
+    })
+  }
+
   function shuffleOneThing(id: string): void {
     const nextExcluded = [...shuffledAway, id]
     const nextPick = data ? pickOneThing(data.tasks, now, nextExcluded) : null
@@ -157,6 +163,7 @@ export default function App() {
             pinnedId={pinnedTask?.id ?? null}
             now={now}
             onComplete={completeTask}
+            onTogglePin={togglePin}
           />
           <AddTask onAdd={addTask} />
         </div>

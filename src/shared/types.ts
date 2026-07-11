@@ -48,6 +48,7 @@ export interface OllibeuData {
 export interface GoogleStatus {
   state: 'unconfigured' | 'disconnected' | 'connecting' | 'connected' | 'needs_reconnect'
   email?: string
+  connectUrl?: string // present while connecting; copy-link fallback if no browser opened
 }
 
 export const DEFAULT_SETTINGS: Settings = {

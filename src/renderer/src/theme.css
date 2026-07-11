@@ -199,7 +199,32 @@ body {
   .today-rail { width: 100%; }
 }
 
-.task-title { flex: 1; min-width: 0; }
+.task-title {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}
+
+.task-card.pinned {
+  background: color-mix(in srgb, var(--accent) 10%, var(--card-bg));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.link-button {
+  border: none;
+  background: transparent;
+  color: var(--accent-soft);
+  font-size: inherit;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
 
 .due-chip {
   flex: none;

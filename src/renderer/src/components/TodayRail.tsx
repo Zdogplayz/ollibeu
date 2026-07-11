@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import type { GoogleStatus } from '@shared/types'
 
 export default function TodayRail(props: {
@@ -5,6 +6,21 @@ export default function TodayRail(props: {
   google: GoogleStatus
   onConnect: () => void
 }) {
+  const [copied, setCopied] = useState(false)
+
+  // A fresh link (or leaving the connecting state) resets the copied marker
+  useEffect(() => {
+    setCopied(false)
+  }, [props.google.connectUrl])
+
+  function copyConnectLink(): void {
+    if (!props.google.connectUrl) return
+    void navigator.clipboard
+      ?.writeText(props.google.connectUrl)
+      .then(() => setCopied(true))
+      .catch(() => setCopied(false))
+  }
+
   return (
     <aside className="today-rail">
       <div className="section-label">Today</div>
@@ -14,7 +30,20 @@ export default function TodayRail(props: {
           calendar arrives in the next update.
         </p>
       ) : props.google.state === 'connecting' ? (
-        <p className="placeholder-copy">A browser tab just opened — finish signing in there. 🌿</p>
+        <>
+          <p className="placeholder-copy">
+            A browser tab just opened — finish signing in there. 🌿
+          </p>
+          {props.google.connectUrl && (
+            <p className="placeholder-copy">
+              Nothing opened?{' '}
+              <button type="button" className="link-button" onClick={copyConnectLink}>
+                {copied ? 'link copied ✓' : 'copy the sign-in link'}
+              </button>{' '}
+              and paste it into any browser.
+            </p>
+          )}
+        </>
       ) : props.google.state === 'unconfigured' ? (
         <p className="placeholder-copy">
           Google isn't set up on this build yet — the person who installed Ollibeu can add the

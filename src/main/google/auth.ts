@@ -38,6 +38,7 @@ export class GoogleAuth {
   private cancelPending: (() => void) | null = null
   private cancelRequested = false
   private needsReconnect = false
+  private pendingAuthUrl: string | null = null
 
   private constructor(tokenPath: string, config: GoogleClientConfig | null, tokens: StoredTokens | null) {
     this.tokenPath = tokenPath
@@ -79,7 +80,9 @@ export class GoogleAuth {
 
   status(): GoogleStatus {
     if (!this.config) return { state: 'unconfigured' }
-    if (this.connecting) return { state: 'connecting' }
+    if (this.connecting) {
+      return { state: 'connecting', connectUrl: this.pendingAuthUrl ?? undefined }
+    }
     if (this.tokens) return { state: 'connected', email: this.tokens.email }
     return { state: this.needsReconnect ? 'needs_reconnect' : 'disconnected' }
   }
@@ -158,6 +161,7 @@ export class GoogleAuth {
     return new Promise((resolve, reject) => {
       const settle = (fn: () => void): void => {
         this.cancelPending = null
+        this.pendingAuthUrl = null
         fn()
       }
       const server: Server = createServer((req, res) => {
@@ -203,23 +207,24 @@ export class GoogleAuth {
           settle(() => reject(new Error('unconfigured')))
           return
         }
+        const authUrl = buildAuthUrl({
+          clientId: this.config.clientId,
+          redirectUri,
+          challenge,
+          scopes: SCOPES,
+          state
+        })
+        // Expose the URL while connecting so the UI can offer a copy-link
+        // fallback on systems where no browser opener exists.
+        this.pendingAuthUrl = authUrl
+        this.emit()
         shell
-          .openExternal(
-            buildAuthUrl({
-              clientId: this.config.clientId,
-              redirectUri,
-              challenge,
-              scopes: SCOPES,
-              state
-            })
-          )
+          .openExternal(authUrl)
           .catch((err) => {
-            // No system browser opener (e.g. bare WSL without xdg-open):
-            // end the flow immediately instead of hanging until the timeout.
+            // No system browser opener (e.g. bare WSL without xdg-open).
+            // Keep the loopback alive: the UI offers the copy-link fallback,
+            // and the 5-minute timeout still bounds the wait.
             console.error('[ollibeu] could not open the browser for sign-in', err)
-            clearTimeout(timer)
-            server.close()
-            settle(() => reject(new Error('browser-open-failed')))
           })
       })
     })

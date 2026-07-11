@@ -9,6 +9,7 @@ export default function TaskList(props: {
   pinnedId: string | null
   now: Date
   onComplete: (id: string) => void
+  onTogglePin: (id: string) => void
 }) {
   const listRef = useRef<HTMLUListElement>(null)
   const [overflowing, setOverflowing] = useState(false)
@@ -26,7 +27,7 @@ export default function TaskList(props: {
       {props.tasks.map((t) => (
         <li
           key={t.id}
-          className={`task-card importance-${t.importance}${t.id === props.justDoneId ? ' done' : ''}`}
+          className={`task-card importance-${t.importance}${t.id === props.justDoneId ? ' done' : ''}${t.id === props.pinnedId ? ' pinned' : ''}`}
         >
           <button
             type="button"
@@ -34,7 +35,15 @@ export default function TaskList(props: {
             aria-label={`Mark "${t.title}" done`}
             onClick={() => props.onComplete(t.id)}
           />
-          <span className="task-title">{t.title}</span>
+          <button
+            type="button"
+            className="task-title"
+            title={t.id === props.pinnedId ? 'take it off the front card' : 'put this one up front'}
+            aria-pressed={t.id === props.pinnedId}
+            onClick={() => props.onTogglePin(t.id)}
+          >
+            {t.title}
+          </button>
           {t.dueDate && <span className="due-chip">{dueLabel(t.dueDate, t.dueTime, props.now)}</span>}
           {t.id === props.pinnedId && <span className="pinned-badge">up front ✨</span>}
           {t.id === props.justDoneId && <ConfettiBurst />}
