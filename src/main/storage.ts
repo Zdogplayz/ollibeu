@@ -32,7 +32,8 @@ export async function loadData(filePath: string): Promise<OllibeuData> {
       ...parsed.settings,
       idleDing: { ...base.settings.idleDing, ...parsed.settings?.idleDing }
     },
-    appState: { ...parsed.appState }
+    appState: { ...parsed.appState },
+    ...(parsed.calendar ? { calendar: parsed.calendar } : {})
   }
 }
 

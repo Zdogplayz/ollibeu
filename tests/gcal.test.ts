@@ -78,4 +78,8 @@ describe('tomorrowPeek', () => {
     ]
     expect(tomorrowPeek(events, NOW)).toMatch(/^Tomorrow: 2 things, first at 9:00/)
   })
+  it('handles an all-day-only tomorrow', () => {
+    const events = [ev({ id: 'a', start: '2026-07-11', end: '2026-07-12', allDay: true })]
+    expect(tomorrowPeek(events, NOW)).toBe('Tomorrow: 1 thing on the calendar')
+  })
 })
