@@ -98,6 +98,10 @@ app.whenReady().then(async () => {
     } catch (err) {
       const msg = (err as Error).message
       if (msg === 'google-api:403') return { ok: false, reason: 'needs-reauth' }
+      if (msg === 'google-api:401') {
+        google.expireAccessToken()
+        return { ok: false, reason: 'unreachable' }
+      }
       return { ok: false, reason: 'unreachable' }
     }
   })
