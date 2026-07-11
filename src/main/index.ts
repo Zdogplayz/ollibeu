@@ -192,18 +192,18 @@ app.whenReady().then(async () => {
   applyLoginItem(store.get().settings.launchAtLogin)
   store.onChange((d) => applyLoginItem(d.settings.launchAtLogin))
 
+  let lastCaptureEnabled: boolean | null = null
   let captureShortcutRegistered = false
-  const CAPTURE_ACCELERATOR = 'CommandOrControl+Shift+O'
   const syncCaptureShortcut = (enabled: boolean): void => {
-    if (enabled && !captureShortcutRegistered) {
-      const ok = globalShortcut.register(CAPTURE_ACCELERATOR, openCapture)
-      if (ok) {
-        captureShortcutRegistered = true
-      } else {
-        console.warn('[ollibeu] failed to register quick-capture shortcut')
+    if (enabled === lastCaptureEnabled) return
+    lastCaptureEnabled = enabled
+    if (enabled) {
+      captureShortcutRegistered = globalShortcut.register('CommandOrControl+Shift+O', openCapture)
+      if (!captureShortcutRegistered) {
+        console.warn('[ollibeu] quick-capture shortcut unavailable (already in use elsewhere)')
       }
-    } else if (!enabled && captureShortcutRegistered) {
-      globalShortcut.unregister(CAPTURE_ACCELERATOR)
+    } else if (captureShortcutRegistered) {
+      globalShortcut.unregister('CommandOrControl+Shift+O')
       captureShortcutRegistered = false
     }
   }

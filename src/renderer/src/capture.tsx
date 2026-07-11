@@ -2,6 +2,8 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import './theme.css'
 
+document.documentElement.dataset.theme = 'day'
+
 function Capture() {
   const [text, setText] = React.useState('')
   function submit(): void {
