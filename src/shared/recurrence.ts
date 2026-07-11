@@ -58,7 +58,8 @@ export function completeRecurring(
   completedAtIso: string,
   newId: string
 ): { done: Task; next: Task } {
-  const completedDate = completedAtIso.substring(0, 10)
+  // completedAtIso may be UTC ("Z") or offset form — always resolve to the LOCAL calendar day
+  const completedDate = formatDate(new Date(completedAtIso))
 
   const done: Task = {
     ...task,

@@ -42,6 +42,13 @@ describe('completeRecurring', () => {
     expect(next.completedAt).toBeUndefined()
     expect(next.snoozedUntil).toBeUndefined()
   })
+
+  it('derives today from the LOCAL date of the completion instant, not the string prefix', () => {
+    const t = task({ id: 'meds', dueDate: '2026-07-11', repeat: 'daily' })
+    // instant = 2026-07-11T23:30Z; the string's date-prefix says 07-12
+    const { next } = completeRecurring(t, '2026-07-12T06:30:00.000+07:00', 'copy-1')
+    expect(next.dueDate).toBe('2026-07-12')
+  })
 })
 
 describe('snoozeUntilTomorrow', () => {
