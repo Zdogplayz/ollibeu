@@ -5,7 +5,18 @@ on:
 permissions:
   contents: write
 jobs:
+  # Create the draft once up front so the two builders upload into the same
+  # release instead of racing to create duplicate drafts.
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh release view "$TAG" --repo "$REPO" > /dev/null 2>&1 || gh release create "$TAG" --draft --title "${TAG#v}" --repo "$REPO"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
   build:
+    needs: prepare
     strategy:
       fail-fast: false
       matrix:
