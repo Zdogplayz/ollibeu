@@ -1,6 +1,6 @@
 # Ollibeu 🌿
 
-A calming desktop dashboard for ADHD brains — see your day, do one thing, no guilt. Ollibeu opens quietly with your computer, gives you one gentle suggestion for what to do next, and keeps the rest of your list soft and out of the way until you're ready for it. Nothing shouts at you, nothing turns red because you're "late" — it just waits with you.
+Ollibeu is a calming desktop dashboard for ADHD brains. See your day, do one thing, no guilt. Ollibeu opens quietly with your computer, gives you one gentle suggestion for what to do next, and keeps the rest of your list soft and out of the way until you're ready for it. Nothing shouts at you, nothing turns red because you're "late" — it just waits with you. I hope it helps, O.
 
 ## Download
 
@@ -9,13 +9,13 @@ Grab the latest installer from [GitHub Releases](https://github.com/Zdogplayz/ol
 - **macOS** — `.dmg` (Apple Silicon and Intel)
 - **Windows** — `.exe`
 
-Ollibeu is free and open source, and the installers aren't signed yet, so your OS will ask you to vouch for it once. That's normal — here's the dance:
+Ollibeu is free and open source, and the installers aren't signed yet, so your OS will ask you to vouch for it once. That's normal, and here's what you have to do:
 
 **macOS:** On first launch, macOS will say the app can't be opened. Right-click (or Control-click) the app and choose **Open**, then confirm **Open** in the dialog. If that doesn't show an Open option, go to **System Settings → Privacy & Security** and click **Open Anyway** next to Ollibeu.
 
 **Windows:** SmartScreen will pop up saying the app is unrecognized. Click **More info**, then **Run anyway**.
 
-**If your Mac says the app is "damaged":** On Apple Silicon Macs, macOS sometimes refuses to open an unsigned app at all, saying it's "damaged and can't be opened — you should move it to the Trash." This looks alarming; it isn't. Ollibeu is fine — it just isn't signed yet, and Gatekeeper is being extra cautious. To recover, open **Terminal** and run:
+**If your Mac says the app is "damaged":** On Apple Silicon Macs, macOS sometimes refuses to open an unsigned app at all, saying it's "damaged and can't be opened — you should move it to the Trash." This looks alarming; it isn't. Ollibeu is fine, it just isn't signed yet, and Gatekeeper is being extra cautious. To recover, open **Terminal** and run:
 
 ```
 xattr -d com.apple.quarantine /Applications/Ollibeu.app
