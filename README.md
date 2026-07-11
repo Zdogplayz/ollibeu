@@ -15,6 +15,14 @@ Ollibeu is free and open source, and the installers aren't signed yet, so your O
 
 **Windows:** SmartScreen will pop up saying the app is unrecognized. Click **More info**, then **Run anyway**.
 
+**If your Mac says the app is "damaged":** On Apple Silicon Macs, macOS sometimes refuses to open an unsigned app at all, saying it's "damaged and can't be opened — you should move it to the Trash." This looks alarming; it isn't. Ollibeu is fine — it just isn't signed yet, and Gatekeeper is being extra cautious. To recover, open **Terminal** and run:
+
+```
+xattr -d com.apple.quarantine /Applications/Ollibeu.app
+```
+
+Then open the app normally. It'll launch right up.
+
 You only have to do this once per install.
 
 ## What it does

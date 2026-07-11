@@ -38,7 +38,10 @@ export default function Onboarding(props: {
       ) : props.google.state === 'connecting' ? (
         <p>A browser tab just opened — finish signing in there, then come back. 🌿</p>
       ) : props.google.state === 'unconfigured' ? (
-        <p>Google isn’t set up on this build — you can add it later in settings. No worries.</p>
+        <p>
+          Google isn't set up on this build yet — the person who installed Ollibeu can add the
+          key later. Everything else works without it.
+        </p>
       ) : (
         <button type="button" className="pill-button" onClick={props.onConnect}>
           Connect Google
