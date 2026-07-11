@@ -62,6 +62,17 @@ describe('storage', () => {
     await expect(loadData(dir)).rejects.toThrow()
   })
 
+  it('drops a malformed calendar shape instead of trusting it', async () => {
+    const file = path.join(dir, 'data.json')
+    await writeFile(
+      file,
+      JSON.stringify({ tasks: [], settings: {}, calendar: { events: 42, lastSyncedAt: '2026-07-10T14:00:00.000Z' } }),
+      'utf8'
+    )
+    const data = await loadData(file)
+    expect(data.calendar).toBeUndefined()
+  })
+
   it('round-trips the optional calendar cache', async () => {
     const file = path.join(dir, 'data.json')
     const data = emptyData()

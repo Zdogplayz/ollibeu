@@ -51,7 +51,7 @@ describe('SyncEngine.syncNow', () => {
     await store.mutate((d) => ({ ...d, tasks: [pendingGtaskRow('a', 'L1', 'g1')] }))
     const api = {
       listEvents: async () => [],
-      listAllTasks: async () => [],
+      listAllTasks: async () => ({ tasks: [], complete: true }),
       patchTaskCompleted: async () => {
         // a local add lands while the completion upload is "in flight"
         await store.mutate((d) => ({ ...d, tasks: [...d.tasks, localTask('late-arrival')] }))
@@ -71,7 +71,7 @@ describe('SyncEngine.syncNow', () => {
     }))
     const api = {
       listEvents: async () => [],
-      listAllTasks: async () => [],
+      listAllTasks: async () => ({ tasks: [], complete: true }),
       patchTaskCompleted: async (listId: string) => {
         if (listId === 'L2') throw new Error('google-api:500')
       }
@@ -81,5 +81,21 @@ describe('SyncEngine.syncNow', () => {
     const tasks = store.get().tasks
     expect(tasks.find((t) => t.id === 'a')?.gtasksSyncPending).toBeFalsy()
     expect(tasks.find((t) => t.id === 'b')?.gtasksSyncPending).toBe(true)
+  })
+
+  it('clears pending when the completion upload fails with a terminal 404 (task gone in Google)', async () => {
+    const store = await DataStore.open(path.join(dir, 'data.json'))
+    await store.mutate((d) => ({ ...d, tasks: [pendingGtaskRow('a', 'L1', 'g1')] }))
+    const api = {
+      listEvents: async () => [],
+      listAllTasks: async () => ({ tasks: [], complete: true }),
+      patchTaskCompleted: async () => {
+        throw new Error('google-api:404')
+      }
+    } as unknown as GoogleApi
+    const engine = new SyncEngine(store, auth, api)
+    await engine.syncNow()
+    const tasks = store.get().tasks
+    expect(tasks.find((t) => t.id === 'a')?.gtasksSyncPending).toBeFalsy()
   })
 })

@@ -48,6 +48,24 @@ describe('mergeGtasks', () => {
     })
   })
 
+  it('does not import an already-completed remote task with no local counterpart', () => {
+    const { tasks } = mergeGtasks([], [remote({ id: 'g1', title: 'Buy milk', completed: true })], NOW)
+    expect(tasks).toEqual([])
+  })
+
+  it('first sync with only completed remotes imports none of them', () => {
+    const { tasks } = mergeGtasks(
+      [],
+      [
+        remote({ id: 'g1', title: 'One', completed: true }),
+        remote({ id: 'g2', title: 'Two', completed: true }),
+        remote({ id: 'g3', title: 'Three', completed: true })
+      ],
+      NOW
+    )
+    expect(tasks).toEqual([])
+  })
+
   it('follows remote title/due changes and remote completion', () => {
     const row = gtaskRow({ id: 't1', gtasksId: 'g1', title: 'Old', dueDate: '2026-07-14' })
     const { tasks } = mergeGtasks([row], [remote({ id: 'g1', title: 'New', due: '2026-07-16T00:00:00.000Z', completed: true })], NOW)
@@ -72,6 +90,12 @@ describe('mergeGtasks', () => {
     const pending = gtaskRow({ id: 't2', gtasksId: 'g2', completedAt: NOW, gtasksSyncPending: true })
     const { tasks } = mergeGtasks([gone, pending], [], NOW)
     expect(tasks.map((t) => t.id)).toEqual(['t2'])
+  })
+
+  it('keeps a vanished-remotely row when skipDeletions is set (truncated snapshot)', () => {
+    const gone = gtaskRow({ id: 't1', gtasksId: 'g1' })
+    const { tasks } = mergeGtasks([gone], [], NOW, { skipDeletions: true })
+    expect(tasks.map((t) => t.id)).toEqual(['t1'])
   })
 
   it('never queues a pending row that lacks a listId', () => {

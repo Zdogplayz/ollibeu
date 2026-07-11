@@ -257,6 +257,10 @@ export class GoogleAuth {
     })
   }
 
+  expireAccessToken(): void {
+    if (this.tokens) this.tokens = { ...this.tokens, expiresAt: 0 }
+  }
+
   async getAccessToken(): Promise<string> {
     if (!this.tokens || !this.config) throw new Error('needs_reconnect')
     if (Date.now() < this.tokens.expiresAt - 60_000) return this.tokens.accessToken

@@ -49,16 +49,17 @@ export class SyncEngine {
       const nowIso = now.toISOString()
       const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
       const windowEnd = new Date(dayStart.getTime() + 2 * 86_400_000)
-      const [events, remoteTasks] = await Promise.all([
+      const [events, { tasks: remoteTasks, complete }] = await Promise.all([
         this.api.listEvents(dayStart.toISOString(), windowEnd.toISOString()),
         this.api.listAllTasks()
       ])
+      const mergeOpts = { skipDeletions: !complete }
       // This pre-fetch merge exists only to compute which items need a completion
       // upload. Its `tasks` list must NOT be written to the store below: the upload
       // loop awaits one PATCH per item, and a task:add / task:complete can land in
       // the live store during those awaits. The mutate callback re-merges against
       // the store's state at write-time so such edits are never dropped.
-      const preMerge = mergeGtasks(this.store.get().tasks, remoteTasks, nowIso)
+      const preMerge = mergeGtasks(this.store.get().tasks, remoteTasks, nowIso, mergeOpts)
 
       const uploaded = new Set<string>()
       for (const item of preMerge.toComplete) {
@@ -66,12 +67,18 @@ export class SyncEngine {
           await this.api.patchTaskCompleted(item.listId, item.taskId)
           uploaded.add(`${item.listId}:${item.taskId}`)
         } catch (err) {
-          console.error('[ollibeu] task completion upload will retry next sync', err)
+          const message = (err as Error).message
+          if (message === 'google-api:404' || message === 'google-api:410') {
+            uploaded.add(`${item.listId}:${item.taskId}`)
+            console.error('[ollibeu] completed task no longer exists in Google; letting it go')
+          } else {
+            console.error('[ollibeu] task completion upload will retry next sync', err)
+          }
         }
       }
 
       await this.store.mutate((d) => {
-        const merged = mergeGtasks(d.tasks, remoteTasks, nowIso)
+        const merged = mergeGtasks(d.tasks, remoteTasks, nowIso, mergeOpts)
         const finalTasks = merged.tasks.map((t) =>
           t.gtasksId && t.gtasksListId && uploaded.has(`${t.gtasksListId}:${t.gtasksId}`)
             ? { ...t, gtasksSyncPending: undefined }
@@ -88,7 +95,11 @@ export class SyncEngine {
         }
       })
     } catch (err) {
-      if ((err as Error).message !== 'needs_reconnect') {
+      const message = (err as Error).message
+      if (message === 'google-api:401') {
+        this.auth.expireAccessToken()
+        console.error('[ollibeu] auth expired mid-sync; will refresh next cycle')
+      } else if (message !== 'needs_reconnect') {
         console.error('[ollibeu] sync postponed; keeping cached data', err)
       }
     } finally {

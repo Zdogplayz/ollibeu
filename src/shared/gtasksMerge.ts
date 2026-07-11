@@ -22,7 +22,8 @@ export function mapGtaskDue(due: unknown): string | undefined {
 export function mergeGtasks(
   local: Task[],
   remote: RemoteGtask[],
-  nowIso: string
+  nowIso: string,
+  opts?: { skipDeletions?: boolean }
 ): { tasks: Task[]; toComplete: { listId: string; taskId: string }[] } {
   const remoteById = new Map(remote.map((r) => [`${r.listId}:${r.id}`, r]))
   const toComplete: { listId: string; taskId: string }[] = []
@@ -43,17 +44,24 @@ export function mergeGtasks(
     }
     const key = `${t.gtasksListId}:${t.gtasksId}`
     const r = remoteById.get(key)
-    if (!r) continue // vanished remotely — drop the mirror row
+    if (!r) {
+      // vanished remotely — drop the mirror row, unless this sync's snapshot was
+      // truncated (paginated fetch didn't complete) and deleting could be wrong
+      if (opts?.skipDeletions) tasks.push(t)
+      continue
+    }
     remoteById.delete(key)
     tasks.push({
       ...t,
       title: r.title || t.title,
+      // gtasks rows mirror Google: a missing/malformed remote due intentionally clears the local one
       dueDate: mapGtaskDue(r.due),
       completedAt: r.completed ? (t.completedAt ?? nowIso) : t.completedAt
     })
   }
 
   for (const r of remoteById.values()) {
+    if (r.completed) continue // already-completed remote history isn't imported as new
     tasks.push({
       id: `gtasks:${r.listId}:${r.id}`,
       title: r.title || '(untitled)',
@@ -62,8 +70,7 @@ export function mergeGtasks(
       gtasksId: r.id,
       gtasksListId: r.listId,
       ...(mapGtaskDue(r.due) ? { dueDate: mapGtaskDue(r.due) } : {}),
-      createdAt: nowIso,
-      ...(r.completed ? { completedAt: nowIso } : {})
+      createdAt: nowIso
     })
   }
 

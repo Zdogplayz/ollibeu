@@ -58,11 +58,39 @@ describe('GoogleApi', () => {
       '/lists/L2/tasks': { items: [{ id: 'g2', title: 'Two', status: 'completed', due: '2026-07-15T00:00:00.000Z' }, { title: 'no id' }] }
     })
     const api = new GoogleApi(token, impl)
-    const tasks = await api.listAllTasks()
+    const { tasks, complete } = await api.listAllTasks()
     expect(tasks).toEqual([
       { id: 'g1', listId: 'L1', title: 'One', due: undefined, completed: false },
       { id: 'g2', listId: 'L2', title: 'Two', due: '2026-07-15T00:00:00.000Z', completed: true }
     ])
+    expect(complete).toBe(true)
+  })
+
+  it('follows nextPageToken per task list, aggregating all pages, and reports complete', async () => {
+    let calls = 0
+    const { impl } = stubFetch({
+      '/users/@me/lists': { items: [{ id: 'L1' }] },
+      '/lists/L1/tasks': () => {
+        calls += 1
+        return calls < 3
+          ? { items: [{ id: `g${calls}`, title: `T${calls}`, status: 'needsAction' }], nextPageToken: 'next' }
+          : { items: [{ id: `g${calls}`, title: `T${calls}`, status: 'needsAction' }] }
+      }
+    })
+    const api = new GoogleApi(token, impl)
+    const { tasks, complete } = await api.listAllTasks()
+    expect(tasks.map((t) => t.id)).toEqual(['g1', 'g2', 'g3'])
+    expect(complete).toBe(true)
+  })
+
+  it('reports incomplete when a task list is truncated at MAX_PAGES', async () => {
+    const { impl } = stubFetch({
+      '/users/@me/lists': { items: [{ id: 'L1' }] },
+      '/lists/L1/tasks': () => ({ items: [{ id: 'g1', title: 'One', status: 'needsAction' }], nextPageToken: 'next' })
+    })
+    const api = new GoogleApi(token, impl)
+    const { complete } = await api.listAllTasks()
+    expect(complete).toBe(false)
   })
 
   it('patches completion and throws a status error on failure', async () => {

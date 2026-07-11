@@ -57,28 +57,44 @@ export class GoogleApi {
     return events
   }
 
-  async listAllTasks(): Promise<RemoteGtask[]> {
+  async listAllTasks(): Promise<{ tasks: RemoteGtask[]; complete: boolean }> {
     const listsBody = (await this.request(`${TASKS}/users/@me/lists?maxResults=50`)) as {
       items?: { id?: unknown }[]
     }
     const out: RemoteGtask[] = []
+    let complete = true
     for (const list of listsBody.items ?? []) {
       if (typeof list.id !== 'string') continue
-      const body = (await this.request(
-        `${TASKS}/lists/${encodeURIComponent(list.id)}/tasks?showCompleted=true&showHidden=true&maxResults=100`
-      )) as { items?: { id?: unknown; title?: unknown; due?: unknown; status?: unknown }[] }
-      for (const item of body.items ?? []) {
-        if (typeof item.id !== 'string') continue
-        out.push({
-          id: item.id,
-          listId: list.id,
-          title: typeof item.title === 'string' ? item.title : '',
-          due: typeof item.due === 'string' ? item.due : undefined,
-          completed: item.status === 'completed'
+      let pageToken: string | undefined
+      for (let page = 0; page < MAX_PAGES; page += 1) {
+        const params = new URLSearchParams({
+          showCompleted: 'true',
+          showHidden: 'true',
+          maxResults: '100',
+          ...(pageToken ? { pageToken } : {})
         })
+        const body = (await this.request(
+          `${TASKS}/lists/${encodeURIComponent(list.id)}/tasks?${params}`
+        )) as { items?: { id?: unknown; title?: unknown; due?: unknown; status?: unknown }[]; nextPageToken?: string }
+        for (const item of body.items ?? []) {
+          if (typeof item.id !== 'string') continue
+          out.push({
+            id: item.id,
+            listId: list.id,
+            title: typeof item.title === 'string' ? item.title : '',
+            due: typeof item.due === 'string' ? item.due : undefined,
+            completed: item.status === 'completed'
+          })
+        }
+        pageToken = body.nextPageToken
+        if (!pageToken) break
+        if (page === MAX_PAGES - 1) {
+          complete = false
+          console.warn('[ollibeu] task list truncated; skipping deletion pass this sync')
+        }
       }
     }
-    return out
+    return { tasks: out, complete }
   }
 
   async patchTaskCompleted(listId: string, taskId: string): Promise<void> {
