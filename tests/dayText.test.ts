@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Task } from '../src/shared/types'
-import { completedTodayCount, greetingFor, dueLabel } from '../src/shared/dayText'
+import { completedTodayCount, finishedLabel, greetingFor, dueLabel } from '../src/shared/dayText'
 
 function at(h: number, m = 0): Date {
   return new Date(2026, 6, 10, h, m)
@@ -37,6 +37,15 @@ describe('completedTodayCount', () => {
       { ...base, id: 'c' }
     ]
     expect(completedTodayCount(tasks, at(14))).toBe(1)
+  })
+})
+
+describe('finishedLabel', () => {
+  const now = new Date(2026, 6, 10, 14, 0)
+  it('shows a time for today and a short date otherwise', () => {
+    expect(finishedLabel(new Date(2026, 6, 10, 9, 15).toISOString(), now)).toMatch(/9:15/)
+    expect(finishedLabel(new Date(2026, 6, 8, 9, 15).toISOString(), now)).toMatch(/Jul/)
+    expect(finishedLabel('garbage', now)).toBe('')
   })
 })
 

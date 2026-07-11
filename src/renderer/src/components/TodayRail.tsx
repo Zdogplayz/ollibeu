@@ -106,7 +106,7 @@ export default function TodayRail(props: {
       ) : (
         <>
           <p className="placeholder-copy">
-            Connect Google to see your day here — appointments, gentle "leave by" nudges, and
+            Connect Google to see your day here — appointments, gentle get-ready nudges, and
             what tomorrow looks like.
           </p>
           <button type="button" className="pill-button" onClick={props.onConnect}>

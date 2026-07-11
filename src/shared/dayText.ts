@@ -18,6 +18,14 @@ export function completedTodayCount(tasks: Task[], now: Date): number {
   return tasks.filter((t) => t.completedAt && sameDay(new Date(t.completedAt), now)).length
 }
 
+export function finishedLabel(completedAtIso: string, now: Date): string {
+  const done = new Date(completedAtIso)
+  if (Number.isNaN(done.getTime())) return ''
+  return sameDay(done, now)
+    ? done.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+    : done.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
 export function dueLabel(dueDate: string, dueTime: string | undefined, now: Date): string {
   const due = new Date(dueDate + 'T00:00:00')
   if (Number.isNaN(due.getTime())) return ''

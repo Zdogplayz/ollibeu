@@ -27,9 +27,22 @@ function byAge(a: Task, b: Task): number {
   return a.createdAt.localeCompare(b.createdAt)
 }
 
-export function sortTasks(tasks: Task[], mode: TaskSortMode): Task[] {
+export function isPastDue(task: Task, now: Date): boolean {
+  const deadline = deadlineOf(task)
+  return deadline !== null && deadline < now.getTime()
+}
+
+export function sortTasks(tasks: Task[], mode: TaskSortMode, now: Date): Task[] {
   const primary = mode === 'importance' ? [byImportance, byDeadline] : [byDeadline, byImportance]
   return [...tasks].sort((a, b) => {
+    // Whatever the mode, things whose moment has passed float gently to the top
+    const pastA = isPastDue(a, now)
+    const pastB = isPastDue(b, now)
+    if (pastA !== pastB) return pastA ? -1 : 1
+    if (pastA && pastB) {
+      const r = byDeadline(a, b)
+      if (r !== 0) return r
+    }
     for (const cmp of primary) {
       const r = cmp(a, b)
       if (r !== 0) return r
