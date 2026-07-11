@@ -23,6 +23,8 @@ export default function App() {
   const [google, setGoogle] = useState<GoogleStatus>({ state: 'disconnected' })
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [showFinished, setShowFinished] = useState(false)
+  const [nudgeVisible, setNudgeVisible] = useState(false)
+  const nudgeTimer = useRef<number | undefined>(undefined)
 
   const dataRef = useRef<OllibeuData | null>(null)
   useEffect(() => {
@@ -46,6 +48,11 @@ export default function App() {
     const offGoogle = window.ollibeu.onGoogleStatusChanged(setGoogle)
     const offDing = window.ollibeu.onIdleDing(() => {
       if (dataRef.current?.settings.soundsEnabled) playChime('ding')
+      // the in-app nudge shows regardless of OS banner rules (e.g. macOS
+      // suppresses system notifications from the focused app)
+      window.clearTimeout(nudgeTimer.current)
+      setNudgeVisible(true)
+      nudgeTimer.current = window.setTimeout(() => setNudgeVisible(false), 15_000)
     })
     return () => {
       cancelled = true
@@ -53,6 +60,7 @@ export default function App() {
       offTrouble()
       offGoogle()
       offDing()
+      window.clearTimeout(nudgeTimer.current)
     }
   }, [])
 
@@ -259,6 +267,11 @@ export default function App() {
           Having a little trouble saving just now — your list is safe on screen, and I’ll try
           again with your next change. 🍃
         </div>
+      )}
+      {nudgeVisible && (
+        <button type="button" role="status" aria-live="polite" className="idle-nudge" onClick={() => setNudgeVisible(false)}>
+          Still with me? No rush — just checking in. 🍃
+        </button>
       )}
     </>
   )
