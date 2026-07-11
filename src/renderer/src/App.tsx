@@ -171,6 +171,9 @@ export default function App() {
           night={night}
           google={google}
           onConnect={() => void window.ollibeu.google.connect().catch(() => {})}
+          calendar={data.calendar}
+          leaveByBufferMinutes={data.settings.leaveByBufferMinutes}
+          now={now}
         />
       </main>
       {wins > 0 && (

@@ -194,6 +194,15 @@ body {
 
 .today-rail .pill-button { margin: 6px 0 10px; }
 
+.rail-timeline { border-left: 2px solid var(--rail-border); padding-left: 10px; margin: 4px 0 10px; }
+.rail-event { margin-bottom: 10px; }
+.rail-event.started { opacity: 0.55; }
+.rail-time { color: var(--text-faint); font-size: 10px; }
+.rail-event-title { font-size: 13px; color: var(--text); }
+.rail-leave-by { font-size: 10px; color: #b0846a; }
+.rail-tomorrow { color: var(--text-faint); font-size: 11px; border-top: 1px solid var(--rail-border); padding-top: 8px; }
+.rail-synced { color: var(--text-faint); font-size: 10px; margin-top: 6px; }
+
 @media (max-width: 640px) {
   .layout { flex-direction: column; }
   .today-rail { width: 100%; }
