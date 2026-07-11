@@ -103,4 +103,24 @@ describe('GoogleApi', () => {
     const bad = new GoogleApi(token, async () => ({ ok: false, status: 403, json: async () => ({}), text: async () => 'nope' }))
     await expect(bad.patchTaskCompleted('L1', 'g1')).rejects.toThrow('google-api:403')
   })
+
+  it('inserts a timed event with computed end', async () => {
+    const { impl, calls } = stubFetch({ '/calendars/primary/events': {} })
+    const api = new GoogleApi(token, impl)
+    await api.insertEvent({ title: 'Coffee', date: '2026-07-12', time: '09:30', durationMinutes: 30 })
+    expect(calls[0].init?.method).toBe('POST')
+    const body = JSON.parse(calls[0].init?.body ?? '{}')
+    expect(body.summary).toBe('Coffee')
+    expect(body.start.dateTime).toContain('2026-07-12')
+    expect(new Date(body.end.dateTime).getTime() - new Date(body.start.dateTime).getTime()).toBe(30 * 60_000)
+  })
+
+  it('inserts an all-day event with exclusive end date', async () => {
+    const { impl, calls } = stubFetch({ '/calendars/primary/events': {} })
+    const api = new GoogleApi(token, impl)
+    await api.insertEvent({ title: 'Trip', date: '2026-07-31' })
+    const body = JSON.parse(calls[0].init?.body ?? '{}')
+    expect(body.start.date).toBe('2026-07-31')
+    expect(body.end.date).toBe('2026-08-01')
+  })
 })

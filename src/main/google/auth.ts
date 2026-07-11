@@ -10,7 +10,7 @@ import { buildAuthUrl, generatePkce } from './pkce'
 const SCOPES = [
   'openid',
   'email',
-  'https://www.googleapis.com/auth/calendar.readonly',
+  'https://www.googleapis.com/auth/calendar.events',
   'https://www.googleapis.com/auth/tasks'
 ]
 
