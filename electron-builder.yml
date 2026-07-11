@@ -1,0 +1,26 @@
+appId: app.ollibeu
+productName: Ollibeu
+directories:
+  output: release
+files:
+  - out/**
+  - package.json
+mac:
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+nsis:
+  oneClick: true
+  deleteAppDataOnUninstall: false
+linux:
+  target:
+    - target: dir
+publish:
+  provider: github
+  owner: Zdogplayz
+  repo: ollibeu

@@ -57,6 +57,7 @@ export interface Settings {
   leaveByBufferMinutes: number
   launchAtLogin: boolean
   taskSort: TaskSortMode
+  onboarded: boolean
 }
 
 export interface AppState {
@@ -87,5 +88,6 @@ export const DEFAULT_SETTINGS: Settings = {
   soundsEnabled: true,
   leaveByBufferMinutes: 25,
   launchAtLogin: true,
-  taskSort: 'importance'
+  taskSort: 'importance',
+  onboarded: false
 }

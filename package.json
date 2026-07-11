@@ -1,14 +1,19 @@
 {
   "name": "ollibeu",
   "version": "0.1.0",
+  "private": true,
   "description": "A calming desktop dashboard for ADHD brains — see your day, do one thing, no guilt.",
   "license": "MIT",
+  "author": "Zephyriah Spaar",
+  "homepage": "https://github.com/Zdogplayz/ollibeu",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "dist": "electron-vite build && electron-builder --publish never",
+    "dist:dir": "electron-vite build && electron-builder --dir --publish never"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -20,6 +25,7 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "electron": "^31.3.0",
+    "electron-builder": "^24.13.3",
     "electron-vite": "^2.3.0",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
