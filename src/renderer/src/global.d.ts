@@ -5,7 +5,8 @@ import type {
   GoogleStatus,
   OllibeuData,
   Settings,
-  Task
+  Task,
+  UpdateHint
 } from '@shared/types'
 
 declare global {
@@ -35,6 +36,9 @@ declare global {
         addEvent(input: AddEventInput): Promise<AddEventResult>
       }
       onIdleDing(cb: (d: null) => void): () => void
+      getUpdateHint(): Promise<UpdateHint>
+      onUpdateHint(cb: (h: UpdateHint) => void): () => void
+      openReleasePage(url: string): Promise<void>
     }
   }
 }

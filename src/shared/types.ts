@@ -80,6 +80,10 @@ export interface GoogleStatus {
   connectUrl?: string // present while connecting; copy-link fallback if no browser opened
 }
 
+export type UpdateHint =
+  | { available: false; current: string }
+  | { available: true; current: string; version: string; url: string }
+
 export const DEFAULT_SETTINGS: Settings = {
   displayName: '',
   theme: 'auto',

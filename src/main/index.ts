@@ -1,13 +1,21 @@
-import { app, BrowserWindow, globalShortcut, ipcMain } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, shell } from 'electron'
 import path from 'path'
 import { randomUUID } from 'node:crypto'
-import type { AddEventInput, AddEventResult, AppState, Settings, Task } from '../shared/types'
+import type {
+  AddEventInput,
+  AddEventResult,
+  AppState,
+  Settings,
+  Task,
+  UpdateHint
+} from '../shared/types'
 import { completeRecurring } from '../shared/recurrence'
 import { DataStore } from './dataStore'
 import { GoogleAuth } from './google/auth'
 import { GoogleApi } from './google/api'
 import { SyncEngine } from './google/sync'
 import { IdleWatcher } from './idleWatcher'
+import { startUpdateFlow } from './updater'
 
 const dataPath = (): string => path.join(app.getPath('userData'), 'ollibeu-data.json')
 
@@ -178,6 +186,18 @@ app.whenReady().then(async () => {
 
   const idleWatcher = new IdleWatcher(store, () => broadcast('idle:ding', null), focusOllibeu)
   idleWatcher.start()
+
+  let lastHint: UpdateHint = { available: false, current: app.getVersion() }
+  startUpdateFlow((h) => {
+    lastHint = h
+    broadcast('update:hint', h)
+  })
+  ipcMain.handle('update:get-hint', () => lastHint)
+  ipcMain.handle('shell:open-release', (_e, url: string) => {
+    if (typeof url === 'string' && url.startsWith('https://github.com/Zdogplayz/ollibeu/')) {
+      void shell.openExternal(url)
+    }
+  })
 
   let lastOpenAtLogin: boolean | null = null
   const applyLoginItem = (wanted: boolean): void => {

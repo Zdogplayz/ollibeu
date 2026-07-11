@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Importance, OllibeuData, Task, TaskSortMode, GoogleStatus } from '@shared/types'
+import type { Importance, OllibeuData, Task, TaskSortMode, GoogleStatus, UpdateHint } from '@shared/types'
 import { resolveTheme } from '@shared/theme'
 import { completedTodayCount, finishedLabel } from '@shared/dayText'
 import { pickOneThing } from '@shared/pickOne'
@@ -23,6 +23,7 @@ export default function App() {
   const [loadTrouble, setLoadTrouble] = useState(false)
   const [saveTrouble, setSaveTrouble] = useState(false)
   const [google, setGoogle] = useState<GoogleStatus>({ state: 'disconnected' })
+  const [updateHint, setUpdateHint] = useState<UpdateHint>({ available: false, current: '' })
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [gardenOpen, setGardenOpen] = useState(false)
   const [showFinished, setShowFinished] = useState(false)
@@ -49,6 +50,8 @@ export default function App() {
     void window.ollibeu.getSaveTrouble().then(setSaveTrouble).catch(() => {})
     void window.ollibeu.google.status().then(setGoogle)
     const offGoogle = window.ollibeu.onGoogleStatusChanged(setGoogle)
+    void window.ollibeu.getUpdateHint().then(setUpdateHint).catch(() => {})
+    const offUpdate = window.ollibeu.onUpdateHint(setUpdateHint)
     const offDing = window.ollibeu.onIdleDing(() => {
       if (dataRef.current?.settings.soundsEnabled) playChime('ding')
       // the in-app nudge shows regardless of OS banner rules (e.g. macOS
@@ -62,6 +65,7 @@ export default function App() {
       offData()
       offTrouble()
       offGoogle()
+      offUpdate()
       offDing()
       window.clearTimeout(nudgeTimer.current)
     }
@@ -183,10 +187,12 @@ export default function App() {
         <SettingsPanel
           settings={data.settings}
           google={google}
+          updateHint={updateHint}
           onChange={(patch) => void window.ollibeu.mutate.setSettings(patch)}
           onConnect={() => void window.ollibeu.google.connect().catch(() => {})}
           onDisconnect={() => void window.ollibeu.google.disconnect().catch(() => {})}
           onResetGoogle={() => void window.ollibeu.google.clearConfig().catch(() => {})}
+          onOpenRelease={(url) => void window.ollibeu.openReleasePage(url).catch(() => {})}
           onClose={() => setSettingsOpen(false)}
         />
       )}
