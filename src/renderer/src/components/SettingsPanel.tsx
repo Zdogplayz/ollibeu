@@ -129,6 +129,14 @@ export default function SettingsPanel(props: {
             onChange={(e) => props.onChange({ quotesEnabled: e.target.checked })}
           />
         </label>
+        <label className="settings-row">
+          <span>Garden 🌱</span>
+          <input
+            type="checkbox"
+            checked={s.gardenEnabled}
+            onChange={(e) => props.onChange({ gardenEnabled: e.target.checked })}
+          />
+        </label>
         <div className="settings-row settings-google">
           <span>Google</span>
           {props.google.state === 'connected' ? (

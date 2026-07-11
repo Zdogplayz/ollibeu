@@ -506,6 +506,14 @@ body {
 
 .settings-reset-line { font-size: 11px; color: var(--text-faint); padding-top: 8px; }
 
+.garden-panel { width: 420px; max-width: 92vw; padding: 18px; }
+.garden-grid { display: flex; flex-wrap: wrap; gap: 6px; font-size: 22px; max-height: 300px; overflow-y: auto; margin: 12px 0; }
+.garden-grid .plant { line-height: 1; }
+.garden-grid .new-plant { animation: garden-pop 0.5s ease; }
+.garden-count { color: var(--text-soft); font-size: 13px; }
+@keyframes garden-pop { 0% { transform: scale(0); } 70% { transform: scale(1.25); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .garden-grid .new-plant { animation: none; } }
+
 .idle-nudge {
   position: fixed;
   bottom: 24px;

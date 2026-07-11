@@ -11,6 +11,7 @@ import AddTask from './components/AddTask'
 import JustOneThing from './components/JustOneThing'
 import TodayRail from './components/TodayRail'
 import SettingsPanel from './components/SettingsPanel'
+import GardenPanel from './components/GardenPanel'
 import Onboarding from './components/Onboarding'
 import { quoteForDate } from './quotes'
 import { playChime } from './sounds'
@@ -23,6 +24,7 @@ export default function App() {
   const [saveTrouble, setSaveTrouble] = useState(false)
   const [google, setGoogle] = useState<GoogleStatus>({ state: 'disconnected' })
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [gardenOpen, setGardenOpen] = useState(false)
   const [showFinished, setShowFinished] = useState(false)
   const [nudgeVisible, setNudgeVisible] = useState(false)
   const nudgeTimer = useRef<number | undefined>(undefined)
@@ -157,6 +159,7 @@ export default function App() {
     (t) => !t.completedAt && t.snoozedUntil && new Date(t.snoozedUntil) > now
   ).length
   const wins = completedTodayCount(data.tasks, now)
+  const completedCount = data.tasks.filter((t) => t.completedAt).length
   const finishedTasks = data.tasks
     .filter((t) => t.completedAt && t.id !== justDoneId)
     .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''))
@@ -186,6 +189,9 @@ export default function App() {
           onResetGoogle={() => void window.ollibeu.google.clearConfig().catch(() => {})}
           onClose={() => setSettingsOpen(false)}
         />
+      )}
+      {gardenOpen && (
+        <GardenPanel completedCount={completedCount} onClose={() => setGardenOpen(false)} />
       )}
       {!data.settings.onboarded && (
         <Onboarding
@@ -262,16 +268,26 @@ export default function App() {
           }
         />
       </main>
-      {(wins > 0 || finishedTasks.length > 0) && (
+      {(wins > 0 || finishedTasks.length > 0 || data.settings.gardenEnabled) && (
         <div className="win-line">
           {wins > 0 && (
             <>
               {wins} {wins === 1 ? 'thing' : 'things'} today ✨{' · '}
             </>
           )}
-          <button type="button" className="link-button" onClick={() => setShowFinished((v) => !v)}>
-            {showFinished ? 'hide finished' : 'see finished'}
-          </button>
+          {data.settings.gardenEnabled && (
+            <>
+              <button type="button" className="link-button" onClick={() => setGardenOpen(true)}>
+                garden 🌱
+              </button>
+              {' · '}
+            </>
+          )}
+          {finishedTasks.length > 0 && (
+            <button type="button" className="link-button" onClick={() => setShowFinished((v) => !v)}>
+              {showFinished ? 'hide finished' : 'see finished'}
+            </button>
+          )}
         </div>
       )}
       {showFinished && finishedTasks.length > 0 && (
