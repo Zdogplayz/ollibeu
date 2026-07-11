@@ -9,10 +9,12 @@ export class IdleWatcher {
   private timer: NodeJS.Timeout | null = null
   private lastFiredAt = 0
   private armed = false
+  private activeBanner: Notification | null = null
 
   constructor(
     private readonly store: DataStore,
-    private readonly onDing: () => void
+    private readonly onDing: () => void,
+    private readonly onBannerClick?: () => void
   ) {}
 
   start(): void {
@@ -41,11 +43,18 @@ export class IdleWatcher {
     this.armed = false
     this.lastFiredAt = Date.now()
     try {
-      new Notification({
-        title: 'Ollibeu',
-        body: 'Still with me? What were you working on? 🍃',
-        silent: true
-      }).show()
+      const banner = new Notification({
+        title: 'Still with me? 🍃',
+        body: 'No rush — just checking in. Click to come back to Ollibeu.',
+        silent: true // the in-app chime carries the sound, honoring the sounds toggle
+      })
+      banner.on('click', () => this.onBannerClick?.())
+      banner.on('close', () => {
+        if (this.activeBanner === banner) this.activeBanner = null
+      })
+      // hold a reference so the banner isn't GC'd before a late click arrives
+      this.activeBanner = banner
+      banner.show()
     } catch (err) {
       console.error('[ollibeu] notification unavailable', err)
     }
