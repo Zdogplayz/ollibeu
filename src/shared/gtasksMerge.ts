@@ -24,7 +24,7 @@ export function mergeGtasks(
   remote: RemoteGtask[],
   nowIso: string
 ): { tasks: Task[]; toComplete: { listId: string; taskId: string }[] } {
-  const remoteById = new Map(remote.map((r) => [r.id, r]))
+  const remoteById = new Map(remote.map((r) => [`${r.listId}:${r.id}`, r]))
   const toComplete: { listId: string; taskId: string }[] = []
   const tasks: Task[] = []
 
@@ -34,14 +34,17 @@ export function mergeGtasks(
       continue
     }
     if (t.gtasksSyncPending && t.completedAt) {
-      toComplete.push({ listId: t.gtasksListId ?? '', taskId: t.gtasksId })
+      if (t.gtasksListId) {
+        toComplete.push({ listId: t.gtasksListId, taskId: t.gtasksId })
+        remoteById.delete(`${t.gtasksListId}:${t.gtasksId}`)
+      }
       tasks.push(t)
-      remoteById.delete(t.gtasksId)
       continue
     }
-    const r = remoteById.get(t.gtasksId)
+    const key = `${t.gtasksListId}:${t.gtasksId}`
+    const r = remoteById.get(key)
     if (!r) continue // vanished remotely — drop the mirror row
-    remoteById.delete(t.gtasksId)
+    remoteById.delete(key)
     tasks.push({
       ...t,
       title: r.title || t.title,

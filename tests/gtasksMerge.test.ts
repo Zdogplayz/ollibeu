@@ -73,4 +73,20 @@ describe('mergeGtasks', () => {
     const { tasks } = mergeGtasks([gone, pending], [], NOW)
     expect(tasks.map((t) => t.id)).toEqual(['t2'])
   })
+
+  it('never queues a pending row that lacks a listId', () => {
+    const row = { ...gtaskRow({ id: 't1', gtasksId: 'g1', completedAt: NOW, gtasksSyncPending: true }), gtasksListId: undefined }
+    const { tasks, toComplete } = mergeGtasks([row], [], NOW)
+    expect(toComplete).toEqual([])
+    expect(tasks.map((t) => t.id)).toEqual(['t1'])
+  })
+
+  it('matches remote tasks by list AND id, not id alone', () => {
+    const row = gtaskRow({ id: 't1', gtasksId: 'g1', gtasksListId: 'L1', title: 'Mine' })
+    const otherList = remote({ id: 'g1', listId: 'L2', title: 'Other list' })
+    const { tasks } = mergeGtasks([row], [otherList], NOW)
+    const mirrored = tasks.find((t) => t.gtasksListId === 'L2')
+    expect(mirrored).toBeDefined()
+    expect(tasks.find((t) => t.id === 't1')).toBeUndefined()
+  })
 })
