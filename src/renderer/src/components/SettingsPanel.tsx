@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Settings } from '@shared/types'
+import type { GoogleStatus, Settings } from '@shared/types'
+import GoogleSetup from './GoogleSetup'
 
 export default function SettingsPanel(props: {
   settings: Settings
+  google: GoogleStatus
   onChange: (patch: Partial<Settings>) => void
+  onConnect: () => void
+  onDisconnect: () => void
   onClose: () => void
 }) {
   const s = props.settings
@@ -116,6 +120,26 @@ export default function SettingsPanel(props: {
             onChange={(e) => props.onChange({ quotesEnabled: e.target.checked })}
           />
         </label>
+        <div className="settings-row settings-google">
+          <span>Google</span>
+          {props.google.state === 'connected' ? (
+            <span className="settings-google-status">
+              connected{props.google.email ? ` as ${props.google.email}` : ''}{' '}
+              <button type="button" className="link-button" onClick={props.onDisconnect}>
+                disconnect
+              </button>
+            </span>
+          ) : props.google.state === 'connecting' ? (
+            <span className="settings-google-status">finishing sign-in in your browser…</span>
+          ) : props.google.state === 'unconfigured' ? (
+            <span className="settings-google-status">needs its setup keys — paste them below</span>
+          ) : (
+            <button type="button" className="pill-button" onClick={props.onConnect}>
+              Connect Google
+            </button>
+          )}
+        </div>
+        {props.google.state === 'unconfigured' && <GoogleSetup compact />}
       </div>
     </div>
   )

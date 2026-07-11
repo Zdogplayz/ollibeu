@@ -152,7 +152,10 @@ export default function App() {
       {settingsOpen && (
         <SettingsPanel
           settings={data.settings}
+          google={google}
           onChange={(patch) => void window.ollibeu.mutate.setSettings(patch)}
+          onConnect={() => void window.ollibeu.google.connect().catch(() => {})}
+          onDisconnect={() => void window.ollibeu.google.disconnect().catch(() => {})}
           onClose={() => setSettingsOpen(false)}
         />
       )}
