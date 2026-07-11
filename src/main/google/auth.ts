@@ -39,6 +39,7 @@ export class GoogleAuth {
   private cancelRequested = false
   private needsReconnect = false
   private pendingAuthUrl: string | null = null
+  private persistQueue: Promise<void> = Promise.resolve()
 
   private constructor(tokenPath: string, config: GoogleClientConfig | null, tokens: StoredTokens | null) {
     this.tokenPath = tokenPath
@@ -58,6 +59,9 @@ export class GoogleAuth {
       tokens = JSON.parse(json)
     } catch {
       tokens = null
+    }
+    if (process.platform === 'linux') {
+      console.warn('[ollibeu] safeStorage backend:', safeStorage.getSelectedStorageBackend())
     }
     return new GoogleAuth(tokenPath, config, tokens)
   }
@@ -87,7 +91,12 @@ export class GoogleAuth {
     return { state: this.needsReconnect ? 'needs_reconnect' : 'disconnected' }
   }
 
-  private async persistTokens(): Promise<void> {
+  private persistTokens(): Promise<void> {
+    this.persistQueue = this.persistQueue.catch(() => undefined).then(() => this.doPersistTokens())
+    return this.persistQueue
+  }
+
+  private async doPersistTokens(): Promise<void> {
     if (!this.tokens) {
       await fs.rm(this.tokenPath, { force: true })
       return
@@ -135,7 +144,15 @@ export class GoogleAuth {
         id_token?: string
       }
       if (!t.refresh_token) throw new Error('no refresh_token in response')
-      if (this.cancelRequested) throw new Error('cancelled')
+      if (this.cancelRequested) {
+        if (t.refresh_token) {
+          void fetch(
+            `https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(t.refresh_token)}`,
+            { method: 'POST' }
+          ).catch(() => undefined)
+        }
+        throw new Error('cancelled')
+      }
       this.tokens = {
         refreshToken: t.refresh_token,
         accessToken: t.access_token,
@@ -173,6 +190,11 @@ export class GoogleAuth {
         const err = url.searchParams.get('error')
         const code = url.searchParams.get('code')
         const gotState = url.searchParams.get('state')
+        if (!err && gotState !== state) {
+          // stray/garbage request: not our flow — ignore and keep waiting
+          res.writeHead(404).end()
+          return
+        }
         const ok = !err && !!code && gotState === state
         res
           .writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
@@ -180,7 +202,6 @@ export class GoogleAuth {
         server.close()
         clearTimeout(timer)
         if (err || !code) settle(() => reject(new Error(err ?? 'no code')))
-        else if (gotState !== state) settle(() => reject(new Error('state mismatch')))
         else settle(() => resolve({ code, redirectUri }))
       })
       let redirectUri = ''
@@ -205,6 +226,12 @@ export class GoogleAuth {
         }
         if (!this.config) {
           settle(() => reject(new Error('unconfigured')))
+          return
+        }
+        if (this.cancelRequested) {
+          clearTimeout(timer)
+          server.close()
+          settle(() => reject(new Error('cancelled')))
           return
         }
         const authUrl = buildAuthUrl({
@@ -268,6 +295,7 @@ export class GoogleAuth {
 
   async disconnect(): Promise<GoogleStatus> {
     this.cancelRequested = true
+    this.needsReconnect = false
     this.cancelPending?.()
     this.cancelPending = null
     if (this.tokens) {
