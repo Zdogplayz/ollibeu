@@ -32,8 +32,11 @@ describe('GoogleAuth.setClientConfig', () => {
 
     const onDisk = JSON.parse(await readFile(path.join(dir, 'google-oauth.json'), 'utf8'))
     expect(onDisk).toEqual({ clientId: 'my-id.apps.googleusercontent.com', clientSecret: 'shh' })
-    const mode = (await stat(path.join(dir, 'google-oauth.json'))).mode & 0o777
-    expect(mode).toBe(0o600)
+    if (process.platform !== 'win32') {
+      // POSIX-only: Windows has no mode bits; %APPDATA% is per-user via ACLs
+      const mode = (await stat(path.join(dir, 'google-oauth.json'))).mode & 0o777
+      expect(mode).toBe(0o600)
+    }
 
     // a fresh launch reads it back through the normal loader
     expect(await loadGoogleConfig({}, path.join(dir, 'google-oauth.json'))).toEqual(onDisk)
@@ -48,8 +51,10 @@ describe('GoogleAuth.setClientConfig', () => {
     await chmod(p, 0o644)
     const auth = await GoogleAuth.create(dir)
     await auth.setClientConfig({ clientId: 'new-id' })
-    const mode = (await stat(p)).mode & 0o777
-    expect(mode).toBe(0o600)
+    if (process.platform !== 'win32') {
+      const mode = (await stat(p)).mode & 0o777
+      expect(mode).toBe(0o600)
+    }
     expect(JSON.parse(await readFile(p, 'utf8')).clientId).toBe('new-id')
   })
 
