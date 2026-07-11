@@ -19,6 +19,7 @@ declare global {
         disconnect(): Promise<GoogleStatus>
       }
       onGoogleStatusChanged(cb: (s: GoogleStatus) => void): () => void
+      syncNow(): Promise<void>
     }
   }
 }
