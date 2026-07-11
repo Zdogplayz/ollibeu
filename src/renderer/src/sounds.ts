@@ -1,6 +1,7 @@
 let ctx: AudioContext | null = null
 function audioContext(): AudioContext {
   if (!ctx || ctx.state === 'closed') ctx = new AudioContext()
+  if (ctx.state === 'suspended') void ctx.resume()
   return ctx
 }
 

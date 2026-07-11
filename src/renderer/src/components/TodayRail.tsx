@@ -121,7 +121,7 @@ export default function TodayRail(props: {
       )}
       <p className="placeholder-copy">
         {props.night
-          ? nextEventCountdown(events, props.now) === null
+          ? nextEventCountdown(events, props.now) === null && props.google.state === 'connected'
             ? 'Your evening is yours. Rest is productive too. ✨'
             : 'Rest is productive too. ✨'
           : 'One thing at a time. 🍃'}

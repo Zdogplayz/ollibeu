@@ -16,7 +16,15 @@ export default function AddEvent(props: {
 
   if (!open) {
     return (
-      <button type="button" className="link-button rail-add" onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className="link-button rail-add"
+        onClick={() => {
+          setDate(props.today)
+          setDuration(60)
+          setOpen(true)
+        }}
+      >
         + add to calendar
       </button>
     )

@@ -8,6 +8,7 @@ const SNOOZE_MS = 30 * 60_000
 export class IdleWatcher {
   private timer: NodeJS.Timeout | null = null
   private lastFiredAt = 0
+  private armed = false
 
   constructor(
     private readonly store: DataStore,
@@ -31,7 +32,13 @@ export class IdleWatcher {
     if (resolveTheme(now, settings) !== 'day') return
     if (Date.now() - this.lastFiredAt < SNOOZE_MS) return
     const idleSeconds = powerMonitor.getSystemIdleTime()
-    if (idleSeconds < settings.idleDing.thresholdMinutes * 60) return
+    if (idleSeconds < settings.idleDing.thresholdMinutes * 60) {
+      // real activity observed — re-arm for the next drift
+      this.armed = true
+      return
+    }
+    if (!this.armed) return
+    this.armed = false
     this.lastFiredAt = Date.now()
     try {
       new Notification({
