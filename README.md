@@ -40,7 +40,12 @@ You only have to do this once per install.
 
 ## Connecting Google
 
-Calendar and Tasks sync are optional, and connecting them takes a few minutes in the Google Cloud console — this only needs to happen once.
+**If you installed Ollibeu from the Releases page, there's nothing to set up** — just click **Connect Google** (in onboarding or the Today panel), sign in in your browser, and Calendar + Tasks start syncing. It's optional; everything else works without it.
+
+<details>
+<summary>Building from source? You'll need your own Google keys</summary>
+
+Release installers ship with the app's Google client keys baked in (injected at build time — desktop-app OAuth keys are non-confidential by design). A source build doesn't have them, so:
 
 1. Create a project in the [Google Cloud Console](https://console.cloud.google.com/).
 2. Enable the **Google Calendar API** and **Google Tasks API** for that project.
@@ -48,6 +53,8 @@ Calendar and Tasks sync are optional, and connecting them takes a few minutes in
 4. Create an **OAuth client ID** of type **Desktop app** — this gives you a Client ID and a Client secret.
 5. Open Ollibeu and **paste the two keys when it asks** — during onboarding, in the Today panel, or under **Settings → Google**. The app stores them for you.
 6. Click **Connect Google** and sign in.
+
+</details>
 
 <details>
 <summary>Advanced: providing the keys as a file instead</summary>

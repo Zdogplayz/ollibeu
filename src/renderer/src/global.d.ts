@@ -26,6 +26,7 @@ declare global {
         connect(): Promise<GoogleStatus>
         disconnect(): Promise<GoogleStatus>
         setConfig(input: { clientId: string; clientSecret?: string }): Promise<GoogleStatus>
+        clearConfig(): Promise<GoogleStatus>
       }
       onGoogleStatusChanged(cb: (s: GoogleStatus) => void): () => void
       syncNow(): Promise<void>

@@ -64,6 +64,15 @@ describe('GoogleAuth.setClientConfig', () => {
     expect(status.state).toBe('unconfigured')
   })
 
+  it('clearClientConfig forgets saved keys and re-resolves (unconfigured without embedded)', async () => {
+    const auth = await GoogleAuth.create(dir)
+    await auth.setClientConfig({ clientId: 'typo-id' })
+    expect(auth.status().state).toBe('disconnected')
+    const status = await auth.clearClientConfig()
+    expect(status.state).toBe('unconfigured')
+    await expect(readFile(path.join(dir, 'google-oauth.json'), 'utf8')).rejects.toThrow()
+  })
+
   it('notifies status listeners when the config lands', async () => {
     const auth = await GoogleAuth.create(dir)
     const seen: string[] = []

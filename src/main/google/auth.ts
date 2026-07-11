@@ -72,6 +72,18 @@ export class GoogleAuth {
     return new GoogleAuth(tokenPath, oauthJsonPath, config, tokens)
   }
 
+  /** Forget saved keys and sign-in entirely; config re-resolves from env/embedded defaults. */
+  async clearClientConfig(): Promise<GoogleStatus> {
+    await this.disconnect()
+    this.persistQueue = this.persistQueue
+      .catch(() => undefined)
+      .then(() => fs.rm(this.oauthJsonPath, { force: true }))
+    await this.persistQueue
+    this.config = await loadGoogleConfig(process.env, this.oauthJsonPath)
+    this.emit()
+    return this.status()
+  }
+
   /** Save client credentials entered in the app; persists so future launches find them. */
   async setClientConfig(input: { clientId: string; clientSecret?: string }): Promise<GoogleStatus> {
     const clientId = input.clientId.trim()

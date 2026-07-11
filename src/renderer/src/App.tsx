@@ -156,6 +156,7 @@ export default function App() {
           onChange={(patch) => void window.ollibeu.mutate.setSettings(patch)}
           onConnect={() => void window.ollibeu.google.connect().catch(() => {})}
           onDisconnect={() => void window.ollibeu.google.disconnect().catch(() => {})}
+          onResetGoogle={() => void window.ollibeu.google.clearConfig().catch(() => {})}
           onClose={() => setSettingsOpen(false)}
         />
       )}
