@@ -9,6 +9,21 @@ import { IdleWatcher } from './idleWatcher'
 
 const dataPath = (): string => path.join(app.getPath('userData'), 'ollibeu-data.json')
 
+// Windows toast banners require the app's user-model id to be registered and
+// to match the installer's appId — without this, Notifications never appear.
+app.setAppUserModelId('app.ollibeu')
+
+function focusOllibeu(): void {
+  const win = BrowserWindow.getAllWindows()[0]
+  if (win) {
+    if (win.isMinimized()) win.restore()
+    win.show()
+    win.focus()
+  } else {
+    createWindow()
+  }
+}
+
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 1100,
@@ -112,7 +127,7 @@ app.whenReady().then(async () => {
 
   syncEngine.start()
 
-  const idleWatcher = new IdleWatcher(store, () => broadcast('idle:ding', null))
+  const idleWatcher = new IdleWatcher(store, () => broadcast('idle:ding', null), focusOllibeu)
   idleWatcher.start()
 
   let lastOpenAtLogin: boolean | null = null
