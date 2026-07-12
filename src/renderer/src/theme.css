@@ -7,6 +7,9 @@
 }
 
 :root[data-theme='day'] {
+  --olive-leaf-deep: #5d7a5f;
+  --olive-leaf-light: #8fae8d;
+  --olive-leaf-pale: #b3c9ac;
   --bg-a: #f2f5ef;
   --bg-b: #e6ede3;
   --text: #33443a;
@@ -23,6 +26,9 @@
 }
 
 :root[data-theme='night'] {
+  --olive-leaf-deep: #6d8f74;
+  --olive-leaf-light: #92b494;
+  --olive-leaf-pale: #b5d0b2;
   --bg-a: #16211c;
   --bg-b: #22332a;
   --text: #e5efe8;
@@ -583,27 +589,42 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  height: 96px;
+  height: 108px; /* viewBox carries 12px headroom so rising leaves aren't clipped */
   opacity: 0.55;
 }
 
 .olive-stem {
-  stroke: var(--text-soft);
-  stroke-width: 2.2;
+  stroke: color-mix(in srgb, var(--olive-leaf-deep) 75%, var(--text-soft));
+  stroke-width: 1.7;
   stroke-linecap: round;
-  opacity: 0.8;
+  opacity: 0.55; /* foliage should dominate; the stem is a suggestion */
 }
-.olive-twig { stroke-width: 1.6; opacity: 0.7; }
+.olive-stem-tip { stroke-width: 1.2; opacity: 0.9; }
 
-.olive-leaf { fill: var(--accent); opacity: 0.62; }
-.olive-leaf-soft { fill: var(--accent-soft); opacity: 0.5; }
+.olive-leaf {
+  fill: url(#oliveLeafA);
+  stroke: color-mix(in srgb, var(--olive-leaf-deep) 70%, transparent);
+  stroke-width: 0.5;
+  opacity: 0.78;
+}
+.olive-leaf-soft { fill: url(#oliveLeafB); opacity: 0.62; }
 
 .olive-fruit {
-  fill: color-mix(in srgb, var(--accent) 42%, #3f3a52);
-  opacity: 0.9;
+  fill: color-mix(in srgb, var(--olive-leaf-light) 55%, #6a6d4a);
+  stroke: color-mix(in srgb, var(--olive-leaf-deep) 55%, transparent);
+  stroke-width: 0.5;
+  opacity: 0.88;
 }
-.olive-stemlet { stroke: var(--text-soft); stroke-width: 1.2; opacity: 0.7; }
-.olive-shine { fill: var(--bg-a); opacity: 0.55; }
+.olive-fruit-young {
+  fill: color-mix(in srgb, var(--olive-leaf-pale) 70%, #7d8054);
+  opacity: 0.8;
+}
+.olive-stemlet {
+  stroke: color-mix(in srgb, var(--olive-leaf-deep) 75%, var(--text-soft));
+  stroke-width: 1.1;
+  opacity: 0.7;
+}
+.olive-shine { fill: var(--bg-a); opacity: 0.5; }
 
 .olive-sway {
   animation: olive-sway 10s ease-in-out infinite alternate;
