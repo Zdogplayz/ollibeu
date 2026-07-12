@@ -584,14 +584,24 @@ body {
   );
 }
 
-.olive-svg {
+.olive-branch {
   position: absolute;
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 108px; /* viewBox carries 12px headroom so rising leaves aren't clipped */
+  width: min(760px, 50%);
+  height: 108px;
+  overflow: hidden;
   opacity: 0.55;
 }
+.olive-branch-l {
+  left: 0;
+  /* dissolve softly at the inner edge when narrow windows crop the branch */
+  mask-image: linear-gradient(to right, black calc(100% - 56px), transparent);
+}
+.olive-branch-r {
+  right: 0;
+  mask-image: linear-gradient(to left, black calc(100% - 56px), transparent);
+}
+.olive-branch-r svg { position: absolute; right: 0; top: 0; }
 
 .olive-stem {
   stroke: color-mix(in srgb, var(--olive-leaf-deep) 75%, var(--text-soft));
@@ -632,8 +642,8 @@ body {
   transform-box: view-box;
 }
 .olive-sway-right {
-  /* mirrored group: keep its own origin at ITS branch base (right edge) */
-  transform-origin: 1440px 12px;
+  /* mirrored branch: origin at ITS base (the right edge of its own viewBox) */
+  transform-origin: 760px 12px;
   animation-duration: 12.5s;
   animation-delay: -4s;
 }

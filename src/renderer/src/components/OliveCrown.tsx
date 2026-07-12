@@ -19,8 +19,8 @@
 // ── stem geometry ────────────────────────────────────────────────────────
 const P0 = { x: -30, y: 12 }
 const P1 = { x: 170, y: 2 }
-const P2 = { x: 420, y: 20 }
-const P3 = { x: 690, y: 42 }
+const P2 = { x: 420, y: 15 }
+const P3 = { x: 690, y: 24 }
 
 function bez(t: number): { x: number; y: number } {
   const u = 1 - t
@@ -166,10 +166,13 @@ function Branch() {
 }
 
 export default function OliveCrown() {
+  // Fixed-pixel corner branches: geometry never scales with window width, so
+  // the drape can't sink into the greeting on wide screens. On narrow windows
+  // the two halves dissolve into each other under a CSS mask.
   return (
     <div className="olive-crown" aria-hidden="true">
       <div className="olive-glow" />
-      <svg className="olive-svg" viewBox="0 -12 1440 108" preserveAspectRatio="xMidYMin slice">
+      <svg className="olive-defs" width="0" height="0" aria-hidden="true">
         <defs>
           {/* two-tone “watercolor” fills — darker rim reading, lighter heart */}
           <linearGradient id="oliveLeafA" x1="0" y1="0" x2="1" y2="0.3">
@@ -181,18 +184,22 @@ export default function OliveCrown() {
             <stop offset="1" style={{ stopColor: 'var(--olive-leaf-pale)' }} />
           </linearGradient>
         </defs>
-        <g className="olive-sway">
+      </svg>
+      <div className="olive-branch olive-branch-l">
+        <svg width="760" height="108" viewBox="0 -12 760 96" className="olive-sway">
           <Branch />
-        </g>
-        {/* the animated group must carry NO attribute transform (CSS rotate
-            and SVG attribute transforms compose in different unit spaces);
-            the mirror lives on an inner group instead */}
-        <g className="olive-sway olive-sway-right">
-          <g transform="translate(1440 0) scale(-1 1)">
+        </svg>
+      </div>
+      <div className="olive-branch olive-branch-r">
+        <svg width="760" height="108" viewBox="0 -12 760 96" className="olive-sway olive-sway-right">
+          {/* the animated element carries NO attribute transform (CSS rotate
+              and SVG attribute transforms compose in different unit spaces);
+              the mirror lives on an inner group instead */}
+          <g transform="translate(760 0) scale(-1 1)">
             <Branch />
           </g>
-        </g>
-      </svg>
+        </svg>
+      </div>
     </div>
   )
 }
