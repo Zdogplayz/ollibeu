@@ -46,6 +46,14 @@ export interface IdleDingSettings {
   thresholdMinutes: number
 }
 
+export interface PomodoroSettings {
+  enabled: boolean
+  workMinutes: number
+  shortBreakMinutes: number
+  longBreakMinutes: number
+  roundsBeforeLongBreak: number
+}
+
 export interface Settings {
   displayName: string
   theme: 'auto' | 'day' | 'night'
@@ -63,6 +71,7 @@ export interface Settings {
   quickCaptureEnabled: boolean
   remindersEnabled: boolean
   taskReminderMinutes: number
+  pomodoro: PomodoroSettings
 }
 
 export interface AppState {
@@ -102,5 +111,12 @@ export const DEFAULT_SETTINGS: Settings = {
   gardenEnabled: true,
   quickCaptureEnabled: true,
   remindersEnabled: true,
-  taskReminderMinutes: 10
+  taskReminderMinutes: 10,
+  pomodoro: {
+    enabled: true,
+    workMinutes: 25,
+    shortBreakMinutes: 5,
+    longBreakMinutes: 15,
+    roundsBeforeLongBreak: 4
+  }
 }

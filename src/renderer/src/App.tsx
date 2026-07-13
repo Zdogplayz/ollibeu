@@ -11,6 +11,7 @@ import AddTask from './components/AddTask'
 import JustOneThing from './components/JustOneThing'
 import TodayRail from './components/TodayRail'
 import OliveCrown from './components/OliveCrown'
+import PomodoroTimer from './components/PomodoroTimer'
 import SettingsPanel from './components/SettingsPanel'
 import GardenPanel from './components/GardenPanel'
 import Onboarding from './components/Onboarding'
@@ -266,6 +267,13 @@ export default function App() {
             <p className="resting-line">{restingCount} resting until tomorrow 🌙</p>
           )}
           <AddTask onAdd={addTask} />
+          {data.settings.pomodoro.enabled && (
+            <PomodoroTimer
+              settings={data.settings.pomodoro}
+              soundsEnabled={data.settings.soundsEnabled}
+              onChime={() => playChime('win')}
+            />
+          )}
         </div>
         <TodayRail
           night={night}
