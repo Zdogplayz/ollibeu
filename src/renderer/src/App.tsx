@@ -28,13 +28,19 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [gardenOpen, setGardenOpen] = useState(false)
   const [showFinished, setShowFinished] = useState(false)
-  const [nudgeVisible, setNudgeVisible] = useState(false)
+  const [nudgeMessage, setNudgeMessage] = useState<string | null>(null)
   const nudgeTimer = useRef<number | undefined>(undefined)
 
   const dataRef = useRef<OllibeuData | null>(null)
   useEffect(() => {
     dataRef.current = data
   }, [data])
+
+  function showNudge(message: string): void {
+    window.clearTimeout(nudgeTimer.current)
+    setNudgeMessage(message)
+    nudgeTimer.current = window.setTimeout(() => setNudgeMessage(null), 15_000)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -57,10 +63,9 @@ export default function App() {
       if (dataRef.current?.settings.soundsEnabled) playChime('ding')
       // the in-app nudge shows regardless of OS banner rules (e.g. macOS
       // suppresses system notifications from the focused app)
-      window.clearTimeout(nudgeTimer.current)
-      setNudgeVisible(true)
-      nudgeTimer.current = window.setTimeout(() => setNudgeVisible(false), 15_000)
+      showNudge('Still with me? No rush — just checking in. 🍃')
     })
+    const offReminder = window.ollibeu.onReminder((r) => showNudge(`${r.title} — ${r.body}`))
     return () => {
       cancelled = true
       offData()
@@ -68,6 +73,7 @@ export default function App() {
       offGoogle()
       offUpdate()
       offDing()
+      offReminder()
       window.clearTimeout(nudgeTimer.current)
     }
   }, [])
@@ -317,9 +323,15 @@ export default function App() {
           again with your next change. 🍃
         </div>
       )}
-      {nudgeVisible && (
-        <button type="button" role="status" aria-live="polite" className="idle-nudge" onClick={() => setNudgeVisible(false)}>
-          Still with me? No rush — just checking in. 🍃
+      {nudgeMessage && (
+        <button
+          type="button"
+          role="status"
+          aria-live="polite"
+          className="idle-nudge"
+          onClick={() => setNudgeMessage(null)}
+        >
+          {nudgeMessage}
         </button>
       )}
     </>
