@@ -49,6 +49,7 @@ contextBridge.exposeInMainWorld('ollibeu', {
       ipcRenderer.invoke('calendar:add-event', input)
   },
   onIdleDing: subscribe<null>('idle:ding'),
+  onReminder: subscribe<{ title: string; body: string }>('reminder:show'),
   getUpdateHint: (): Promise<UpdateHint> => ipcRenderer.invoke('update:get-hint'),
   onUpdateHint: subscribe<UpdateHint>('update:hint'),
   openReleasePage: (url: string): Promise<void> => ipcRenderer.invoke('shell:open-release', url)

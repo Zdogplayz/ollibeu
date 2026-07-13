@@ -15,6 +15,7 @@ import { GoogleAuth } from './google/auth'
 import { GoogleApi } from './google/api'
 import { SyncEngine } from './google/sync'
 import { IdleWatcher } from './idleWatcher'
+import { ReminderWatcher } from './reminderWatcher'
 import { startUpdateFlow } from './updater'
 
 const dataPath = (): string => path.join(app.getPath('userData'), 'ollibeu-data.json')
@@ -190,6 +191,13 @@ app.whenReady().then(async () => {
 
   const idleWatcher = new IdleWatcher(store, () => broadcast('idle:ding', null), focusOllibeu)
   idleWatcher.start()
+
+  const reminderWatcher = new ReminderWatcher(
+    store,
+    (r) => broadcast('reminder:show', r),
+    focusOllibeu
+  )
+  reminderWatcher.start()
 
   let lastHint: UpdateHint = { available: false, current: app.getVersion() }
   startUpdateFlow((h) => {
