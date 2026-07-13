@@ -44,7 +44,8 @@ export class ReminderWatcher {
       }
       this.onReminder({ title: r.title, body: r.body })
     }
-    // keep the fired set from growing forever: prune keys older than today
+    // bound the fired set: a rare full clear may re-fire one in-window reminder
+    // once (never a storm), matching the plan's accepted in-memory tolerance
     if (this.fired.size > 500) this.fired.clear()
   }
 }
