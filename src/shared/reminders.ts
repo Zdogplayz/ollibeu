@@ -74,7 +74,7 @@ export function dueReminders(
       result.push({
         key: `task:${task.id}:${dateStr}`,
         title: task.title,
-        body: `due at ${timeStr} — whenever you're ready. 🍃`
+        body: `due at ${timeStr} — whenever you’re ready. 🍃`
       })
     }
   }
