@@ -140,6 +140,44 @@ export default function SettingsPanel(props: {
           />
         </label>
         <label className="settings-row">
+          <span>Focus timer</span>
+          <input
+            type="checkbox"
+            checked={s.pomodoro.enabled}
+            onChange={(e) => props.onChange({ pomodoro: { ...s.pomodoro, enabled: e.target.checked } })}
+          />
+        </label>
+        {s.pomodoro.enabled && (
+          <div className="settings-pomo">
+            {(
+              [
+                ['workMinutes', 'focus minutes', 1, 120],
+                ['shortBreakMinutes', 'short break', 1, 60],
+                ['longBreakMinutes', 'long break', 1, 90],
+                ['roundsBeforeLongBreak', 'rounds before long break', 1, 12]
+              ] as const
+            ).map(([key, label, min, max]) => (
+              <label className="settings-row settings-pomo-row" key={key}>
+                <span>{label}</span>
+                <input
+                  type="number"
+                  min={min}
+                  max={max}
+                  value={s.pomodoro[key]}
+                  onChange={(e) =>
+                    props.onChange({
+                      pomodoro: {
+                        ...s.pomodoro,
+                        [key]: Math.min(max, Math.max(min, Number(e.target.value) || min))
+                      }
+                    })
+                  }
+                />
+              </label>
+            ))}
+          </div>
+        )}
+        <label className="settings-row">
           <span>Open Ollibeu when the computer starts</span>
           <input
             type="checkbox"
