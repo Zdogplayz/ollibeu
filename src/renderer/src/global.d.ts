@@ -36,6 +36,7 @@ declare global {
         addEvent(input: AddEventInput): Promise<AddEventResult>
       }
       onIdleDing(cb: (d: null) => void): () => void
+      onReminder(cb: (r: { title: string; body: string }) => void): () => void
       getUpdateHint(): Promise<UpdateHint>
       onUpdateHint(cb: (h: UpdateHint) => void): () => void
       openReleasePage(url: string): Promise<void>

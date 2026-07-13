@@ -532,6 +532,8 @@ body {
   border-radius: 14px;
   padding: 12px 20px;
   font-size: 14px;
+  max-width: 420px;
+  text-align: center;
   cursor: pointer;
   z-index: 25; /* above everything — a drift nudge must show through any overlay */
   animation: nudge-in 0.4s ease;

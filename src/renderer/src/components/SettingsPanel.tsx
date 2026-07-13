@@ -108,6 +108,30 @@ export default function SettingsPanel(props: {
           </label>
         )}
         <label className="settings-row">
+          <span>Reminders</span>
+          <input
+            type="checkbox"
+            checked={s.remindersEnabled}
+            onChange={(e) => props.onChange({ remindersEnabled: e.target.checked })}
+          />
+        </label>
+        {s.remindersEnabled && (
+          <label className="settings-row">
+            <span>remind me this many minutes before a timed task</span>
+            <input
+              type="number"
+              min={1}
+              max={120}
+              value={s.taskReminderMinutes}
+              onChange={(e) =>
+                props.onChange({
+                  taskReminderMinutes: Math.min(120, Math.max(1, Number(e.target.value) || 10))
+                })
+              }
+            />
+          </label>
+        )}
+        <label className="settings-row">
           <span>Quick capture (Ctrl/Cmd+Shift+O)</span>
           <input
             type="checkbox"

@@ -61,6 +61,8 @@ export interface Settings {
   onboarded: boolean
   gardenEnabled: boolean
   quickCaptureEnabled: boolean
+  remindersEnabled: boolean
+  taskReminderMinutes: number
 }
 
 export interface AppState {
@@ -98,5 +100,7 @@ export const DEFAULT_SETTINGS: Settings = {
   taskSort: 'importance',
   onboarded: false,
   gardenEnabled: true,
-  quickCaptureEnabled: true
+  quickCaptureEnabled: true,
+  remindersEnabled: true,
+  taskReminderMinutes: 10
 }
