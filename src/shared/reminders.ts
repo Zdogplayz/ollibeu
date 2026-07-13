@@ -52,7 +52,8 @@ export function dueReminders(
   // Process tasks
   for (const task of tasks) {
     // Skip if no dueDate/dueTime, completed, or snoozed
-    if (!task.dueDate || !task.dueTime || task.completedAt || task.snoozedUntil) {
+    const stillSnoozed = task.snoozedUntil ? new Date(task.snoozedUntil) > now : false
+    if (!task.dueDate || !task.dueTime || task.completedAt || stillSnoozed) {
       continue
     }
 

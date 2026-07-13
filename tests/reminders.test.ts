@@ -51,6 +51,11 @@ describe('dueReminders — tasks', () => {
     ]
     expect(dueReminders(tasks, [], NOW, OPTS)).toHaveLength(0)
   })
+  it('a task whose snooze has already elapsed still reminds', () => {
+    const woken = task({ id: 't', dueDate: '2026-07-13', dueTime: '14:10', snoozedUntil: '2026-07-13T08:00:00' })
+    const r = dueReminders([woken], [], NOW, OPTS)
+    expect(r.map((x) => x.key)).toEqual(['task:t:2026-07-13'])
+  })
   it('does not fire after the due time has passed', () => {
     const past = task({ id: 't', dueDate: '2026-07-13', dueTime: '13:59' })
     expect(dueReminders([past], [], NOW, OPTS)).toHaveLength(0)
