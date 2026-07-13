@@ -7,6 +7,7 @@ const POLL_MS = 30_000
 export class ReminderWatcher {
   private timer: NodeJS.Timeout | null = null
   private fired = new Set<string>()
+  private liveBanners = new Set<Notification>()
 
   constructor(
     private readonly store: DataStore,
@@ -38,6 +39,9 @@ export class ReminderWatcher {
       try {
         const banner = new Notification({ title: r.title, body: r.body, silent: true })
         banner.on('click', () => this.onBannerClick?.())
+        // hold a reference so the banner isn't GC'd before a late click arrives
+        this.liveBanners.add(banner)
+        banner.on('close', () => this.liveBanners.delete(banner))
         banner.show()
       } catch (err) {
         console.error('[ollibeu] reminder notification unavailable', err)
